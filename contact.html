@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Let's Connect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1.5rem;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 700px;
+      border: 1px solid #2e2e2e;
+      background: #0a0a0a;
+    }
+
+    .back-row {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid #2e2e2e;
+    }
+
+    .back-btn {
+      color: #bbb;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .hero-row {
+      padding: 1.2rem 1rem 1rem;
+      border-bottom: 1px solid #2e2e2e;
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3.5rem, 13.5vw, 6rem);
+      letter-spacing: 0.015em;
+      color: #f0ede6;
+      line-height: 1;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 0.75fr 1.5fr 1.3fr 1.3fr;
+      border-bottom: 1px solid #2e2e2e;
+    }
+
+    .info-cell {
+      border-right: 1px solid #2e2e2e;
+      padding: 0.65rem 0.75rem 0.85rem;
+      min-height: 145px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-cell:last-child { border-right: none; }
+
+    .cell-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.44rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #777;
+      margin-bottom: 0.8rem;
+    }
+
+    .cell-label .arr { color: #444; }
+
+    .cell-body { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; }
+
+    .star { font-size: 0.95rem; color: #ccc; margin-bottom: 0.6rem; }
+
+    .name-text {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #e8e4dc;
+      line-height: 1.4;
+    }
+
+    .link-icon { margin-bottom: 0.45rem; }
+    .link-icon svg { width: 20px; height: 20px; fill: #bbb; }
+
+    .cell-main {
+      font-size: 0.52rem;
+      color: #ddd;
+      line-height: 1.45;
+      word-break: break-all;
+      margin-bottom: 0.3rem;
+    }
+
+    .cell-sub {
+      font-size: 0.38rem;
+      color: #4a4a4a;
+      line-height: 1.6;
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 5px);
+      gap: 3.5px;
+      margin-bottom: 0.45rem;
+    }
+
+    .keypad span { width: 5px; height: 5px; background: #bbb; display: block; }
+
+    .pin-icon { margin-bottom: 0.45rem; }
+    .pin-icon svg { width: 16px; height: 18px; fill: #bbb; }
+
+    .location-text {
+      font-size: 1rem;
+      color: #ccc;
+      line-height: 1.5;
+    }
+
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .socials-cell {
+      border-right: 1px solid #2e2e2e;
+      padding: 0.65rem 0.75rem 1rem;
+    }
+
+    .section-label {
+      font-size: 0.44rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #777;
+      margin-bottom: 1.3rem;
+    }
+
+    .socials-date {
+      font-size: 0.38rem;
+      color: #444;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.55rem;
+    }
+
+    .socials-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.38rem;
+    }
+
+    .socials-list li {
+      font-size: 0.48rem;
+      color: #999;
+      letter-spacing: 0.04em;
+    }
+
+    .socials-list li .platform { color: #555; }
+    .socials-list li .handle { color: #999; }
+
+    .recent-cell {
+      padding: 0.65rem 0.75rem 0;
+      position: relative;
+      overflow: hidden;
+      min-height: 185px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .recent-port-label {
+      font-size: 0.38rem;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.15rem;
+      margin-top: 0.4rem;
+    }
+
+    .recent-url {
+      font-size: 0.46rem;
+      color: #888;
+      text-decoration: underline;
+      letter-spacing: 0.02em;
+    }
+
+    .blob-wrap {
+      position: absolute;
+      right: -14px;
+      bottom: 52px;
+      width: 120px;
+      height: 115px;
+      pointer-events: none;
+    }
+
+    .blob {
+      width: 100%;
+      height: 100%;
+      border-radius: 55% 45% 60% 40% / 48% 58% 42% 52%;
+      background:
+        radial-gradient(ellipse at 38% 28%, #ffffff 0%, #e4e0da 18%, #c0bbb5 40%, #95918c 65%, #605d59 90%);
+      box-shadow:
+        inset -14px -14px 22px rgba(0,0,0,0.55),
+        inset 10px 10px 18px rgba(255,255,255,0.22),
+        5px 10px 24px rgba(0,0,0,0.75);
+      transform: rotate(-18deg);
+      position: relative;
+    }
+
+    .blob::after {
+      content: '';
+      position: absolute;
+      top: 14%;
+      left: 18%;
+      width: 28%;
+      height: 18%;
+      background: rgba(255,255,255,0.38);
+      border-radius: 50%;
+      filter: blur(5px);
+      transform: rotate(-22deg);
+    }
+
+    .recent-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 0 0.75rem 0;
+    }
+
+    .recent-date {
+      font-size: 0.38rem;
+      color: #444;
+      text-align: right;
+      margin-bottom: 0.18rem;
+    }
+
+    .recent-headline {
+      font-family: 'Space Mono', monospace;
+      font-style: italic;
+      font-size: clamp(0.7rem, 3vw, 1.05rem);
+      color: #e8e4dc;
+      line-height: 1.2;
+      text-align: right;
+      margin-bottom: 0;
+    }
+
+    .recent-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      font-size: 0.34rem;
+      color: #444;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      line-height: 1.5;
+      border-top: 1px solid #1e1e1e;
+      margin-top: 0.4rem;
+      padding: 0.35rem 0 0.4rem;
+    }
+
+    @media (max-width: 780px) {
+      .info-grid,
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .info-cell,
+      .socials-cell {
+        border-right: none;
+        border-bottom: 1px solid #2e2e2e;
+      }
+
+      .recent-cell {
+        min-height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="back-row">
+      <span class="back-btn">←</span>
+    </div>
+
+    <div class="hero-row">
+      <h1 class="hero-title">LET'S CONNECT</h1>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-cell">
+        <div class="cell-label">NAME <span class="arr">→</span></div>
+        <div class="cell-body">
+          <div class="star">★</div>
+          <div class="name-text">Gokul ar</div>
+        </div>
+      </div>
+
+      <div class="info-cell">
+        <div class="cell-label">EMAIL <span class="arr">→</span></div>
+        <div class="cell-body">
+          <div class="link-icon">
+            <svg viewBox="0 0 24 24"><path d="M17 7h-4v2h4c1.65 0 3 1.35 3 3s-1.35 3-3 3h-4v2h4c2.76 0 5-2.24 5-5s-2.24-5-5-5zm-6 8H7c-1.65 0-3-1.35-3-3s1.35-3 3-3h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-2zm-3-4h8v2H8z"/></svg>
+          </div>
+          <div class="cell-main"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9ef9f1f5ebf2f2f1f9f7f0aaa8def9f3fff7f2b0fdf1f3">[email&#160;protected]</a></div>
+          <div class="cell-sub">For professional correspondence, kindly reach out via email.</div>
+        </div>
+      </div>
+
+    <div class="bottom-grid">
+      <div class="socials-cell">
+        <div class="section-label">SOCIALS</div>
+        <div class="socials-date">JANUARY 2026</div>
+        <ul class="socials-list">
+          <li><span class="platform">DISCORD: </span><span class="handle">/KAZTRAL</span></li>
+          <li><span class="platform">INSTAGRAM: </span><span class="handle">@gokul.arr</span></li>
+          <li><span class="platform">X: </span><span class="handle">@ka4tral</span></li>
+          <li><span class="platform">GITHUB: </span><span class="handle">/kaztral-ar</span></li>
+        </ul>
+      </div>
+
+      <div class="recent-cell">
+        <div class="section-label">RECENTLY ADDED</div>
+        <div class="recent-port-label">PORTFOLIO:</div>
+        
+
+        <div class="blob-wrap">
+          <div class="blob"></div>
+        </div>
+
+        <div class="recent-bottom">
+          <div class="recent-date">27 02 2024</div>
+          <div class="recent-headline"><em>leveraging the<br/>Niche</em></div>
+          <div class="recent-footer">
+            <span>DESIGNED BY<br/>ka
