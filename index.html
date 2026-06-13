@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Kaztral — developer, web designer, and Bash tool builder. Portfolio of projects and capabilities." />
+    <meta name="author" content="Kaztral" />
+    <meta property="og:title" content="Kaztral | Developer Portfolio" />
+    <meta property="og:description" content="Developer portfolio — web systems, automation, UI engineering." />
+    <meta property="og:type" content="website" />
+    <title>Kaztral | Developer Portfolio</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <style>
+      /* ── GitHub dynamic projects ── */
+
+      /* Skeleton pulse animation while repos load */
+      @keyframes kz-pulse {
+        0%, 100% { opacity: .35; }
+        50%       { opacity: .7;  }
+      }
+      .proj-skeleton {
+        height: 3.75rem;
+        border-radius: 2px;
+        background: var(--clr-surface, #1a1a1a);
+        margin-bottom: .5rem;
+        animation: kz-pulse 1.4s ease-in-out infinite;
+      }
+      .proj-skeleton:nth-child(2) { animation-delay: .2s; }
+      .proj-skeleton:nth-child(3) { animation-delay: .4s; }
+
+      /* Error fallback message */
+      .proj-error {
+        font-family: var(--font-mono, monospace);
+        font-size: .85rem;
+        color: var(--clr-accent, #f00);
+        margin-top: 1rem;
+        opacity: .8;
+      }
+      .proj-error a {
+        color: inherit;
+        text-decoration: underline;
+        margin-left: .5rem;
+      }
+
+      /* Smooth arrow rotation on accordion open */
+      .proj-arrow {
+        display: inline-block;
+        transition: transform .2s ease;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <!-- ── Loader ─────────────────────────────────────────── -->
+    <div class="loader-overlay" id="loaderOverlay" aria-live="polite">
+      <div class="loader-inner">
+        <div class="loader-header">
+          <span class="loader-brand">KZ//</span>
+          <span class="loader-status" id="loaderStatus">INIT</span>
+        </div>
+        <div class="loader-bar-wrap">
+          <div class="loader-bar" id="loaderBar"></div>
+        </div>
+        <div class="loader-lines" id="loaderLines">
+          <p class="lline" data-text="┌──(kaztral㉿portfolio)-[~]" data-style="top"></p>
+          <p class="lline" data-text="└─$ boot --init" data-style="boot"></p>
+          <p class="lline" data-text="checking system status..."></p>
+          <p class="lline" data-text="establishing secure session..."></p>
+          <p class="lline" data-text="loading modules..."></p>
+          <p class="lline lline--ok" data-text="STATUS: ONLINE"></p>
+        </div>
+        <div class="loader-pct" id="loaderPct">0%</div>
+      </div>
+    </div>
+
+    <!-- ── Page ───────────────────────────────────────────── -->
+    <div class="page-content" id="pageContent">
+      <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+      <!-- Nav -->
+      <header class="site-header" id="top">
+        <nav class="container nav" aria-label="Primary navigation">
+          <a href="#home" class="brand" aria-label="Home">KZ//</a>
+
+          <ul class="nav-menu" id="navMenu" role="list">
+            <li><a class="nav-link active" href="#home" data-section="home">Home</a></li>
+            <li><a class="nav-link" href="#origin" data-section="origin">About</a></li>
+            <li><a class="nav-link" href="#projects" data-section="projects">Projects</a></li>
+            <li><a class="nav-link" href="#capabilities" data-section="capabilities">Skills</a></li>
+            <li><a class="nav-link nav-link--contact" href="contact.html">Contact</a></li>
+          </ul>
+
+          <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navDrawer">
+            <span></span><span></span><span></span>
+            <span class="sr-only">Toggle menu</span>
+          </button>
+        </nav>
+
+        <div class="nav-drawer" id="navDrawer" aria-hidden="true">
+          <ul role="list">
+            <li><a class="nav-link" href="#home">Home</a></li>
+            <li><a class="nav-link" href="#origin">About</a></li>
+            <li><a class="nav-link" href="#projects">Projects</a></li>
+            <li><a class="nav-link" href="#capabilities">Skills</a></li>
+            <li><a class="nav-link" href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+      </header>
+
+      <main>
+
+        <!-- ── Hero ────────────────────────────────────────── -->
+        <section class="hero section" id="home" aria-label="Hero">
+          <div class="hero-code-bg" id="heroCodeBg" aria-hidden="true">
+            <pre id="heroCodePre"></pre>
+          </div>
+
+          <div class="container hero-content reveal">
+            <div class="hero-eyebrow">
+              <span class="hero-index">001</span>
+              <span class="hero-tag">SYSTEM INTERFACE ONLINE</span>
+            </div>
+
+            <h1 class="hero-title" data-text="KAZTRAL">KAZTRAL</h1>
+
+            <div class="hero-sub">
+              <p class="hero-descriptor">Developer &amp; automation builder</p>
+            </div>
+
+            <div class="hero-strip">
+              <div class="hero-strip-cell">
+                <span class="strip-label">ROLE</span>
+                <span class="strip-value">Web + Systems</span>
+              </div>
+              <div class="hero-strip-cell">
+                <span class="strip-label">STACK</span>
+                <span class="strip-value">JS · Bash · Linux</span>
+              </div>
+              <div class="hero-strip-cell">
+                <span class="strip-label">STATUS</span>
+                <span class="strip-value strip-value--online">● Available</span>
+              </div>
+              <div class="hero-strip-cell">
+                <span class="strip-label">PROJECTS</span>
+                <span class="strip-value">03 listed</span>
+              </div>
+            </div>
+
+            <div class="hero-actions">
+              <a href="#projects" class="btn btn-primary">View Projects</a>
+              <a href="contact.html" class="btn btn-ghost">Get in Touch</a>
+            </div>
+
+            <a href="#origin" class="scroll-indicator" aria-label="Scroll to About">
+              <span class="scroll-line"></span>
+            </a>
+          </div>
+        </section>
+
+        <!-- ── About ───────────────────────────────────────── -->
+        <section class="section section--ruled" id="origin" aria-label="About">
+          <div class="container reveal">
+            <div class="section-header">
+              <p class="kicker"><span class="kicker-num">002</span> About</p>
+              <h2>Terminal session:<br/>Kaztral</h2>
+            </div>
+
+            <div class="about-grid">
+              <article class="terminal-window" id="aboutTerminal" aria-label="About profile terminal">
+                <div class="terminal-bar">
+                  <span class="dot dot-r"></span>
+                  <span class="dot dot-y"></span>
+                  <span class="dot dot-g"></span>
+                  <span class="terminal-title">profile.log</span>
+                  <span class="terminal-path">~/kaztral</span>
+                </div>
+                <div class="terminal-body">
+                  <p class="about-accent" data-type-line="* Loading Kaztral profile..."></p>
+                  <div class="about-lines" aria-live="polite">
+                    <p class="about-line" data-prefix="> " data-type-line="Hello, I am Kaztral."></p>
+                    <p class="about-line" data-prefix="> " data-type-line="Developer, web designer, and Bash tool builder."></p>
+                    <p class="about-line" data-prefix="> " data-type-line="I craft reliable web systems and automation workflows."></p>
+                    <p class="about-line" data-prefix="> " data-type-line="I value clean architecture, speed, and practical UX."></p>
+                  </div>
+                </div>
+              </article>
+
+              <aside class="about-meta">
+                <div class="meta-cell">
+                  <span class="meta-label">HANDLE</span>
+                  <span class="meta-value">Kaztral</span>
+                </div>
+                <div class="meta-cell">
+                  <span class="meta-label">GITHUB</span>
+                  <span class="meta-value">/kaztral-ar</span>
+                </div>
+                <div class="meta-cell">
+                  <span class="meta-label">FOCUS</span>
+                  <span class="meta-value">Web · Automation · Security</span>
+                </div>
+                <div class="meta-cell">
+                  <span class="meta-label">ENVIRONMENT</span>
+                  <span class="meta-value">Linux · Terminal · Termux</span>
+                </div>
+                <div class="meta-cell">
+                  <span class="meta-label">STYLE</span>
+                  <span class="meta-value">Zero-dep · Minimal · Fast</span>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Projects ────────────────────────────────────── -->
+        <section class="section section--ruled" id="projects" aria-label="Projects">
+          <div class="container reveal">
+            <div class="section-header section-header--row">
+              <div>
+                <p class="kicker"><span class="kicker-num">003</span> Projects</p>
+                <h2>Built for automation,<br/>speed &amp; utility.</h2>
+              </div>
+              <!-- Count is updated dynamically -->
+              <span class="section-count" id="projectCount">-- works</span>
+            </div>
+
+            <!-- Project list is populated by github-projects.js -->
+            <div class="project-list" id="projectList" role="list" aria-live="polite" aria-busy="true">
+              <!-- Skeleton loaders shown while fetching -->
+              <div class="proj-skeleton" aria-hidden="true"></div>
+              <div class="proj-skeleton" aria-hidden="true"></div>
+              <div class="proj-skeleton" aria-hidden="true"></div>
+            </div>
+
+            <!-- Error state (hidden by default) -->
+            <p class="proj-error" id="projectError" hidden>
+              Could not load projects from GitHub.
+              <a href="https://github.com/Kaztral-ar" target="_blank" rel="noopener">View on GitHub ↗</a>
+            </p>
+          </div>
+        </section>
+
+        <!-- ── Capabilities ─────────────────────────────────── -->
+        <section class="section section--ruled" id="capabilities" aria-label="Core Capabilities">
+          <div class="container reveal">
+            <div class="section-header">
+              <p class="kicker"><span class="kicker-num">004</span> Core Capabilities</p>
+              <h2>Technical range with<br/>execution discipline.</h2>
+            </div>
+
+            <div class="caps-layout">
+              <div class="caps-tabs" role="tablist" aria-label="Capabilities">
+                <button class="caps-tab is-active" role="tab" aria-selected="true" aria-controls="cap-0" data-cap="0">Web Systems</button>
+                <button class="caps-tab" role="tab" aria-selected="false" aria-controls="cap-1" data-cap="1">Automation</button>
+                <button class="caps-tab" role="tab" aria-selected="false" aria-controls="cap-2" data-cap="2">Security Tools</button>
+                <button class="caps-tab" role="tab" aria-selected="false" aria-controls="cap-3" data-cap="3">UI Engineering</button>
+              </div>
+
+              <div class="caps-panels">
+                <div class="caps-panel is-active" id="cap-0" role="tabpanel">
+                  <div class="cap-number">01</div>
+                  <div class="cap-body">
+                    <p class="cap-desc">Modern responsive interfaces built with clean architecture. Focus on performance, minimal UI, and scalable frontend systems that are fast and maintainable.</p>
+                    <div class="cap-stack">
+                      <span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">JavaScript</span><span class="tag">React</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="caps-panel" id="cap-1" role="tabpanel" hidden>
+                  <div class="cap-number">02</div>
+                  <div class="cap-body">
+                    <p class="cap-desc">CLI and Bash automation for workflow optimization. Task scheduling, IP rotation tools, and system scripting built for reliability under real conditions.</p>
+                    <div class="cap-stack">
+                      <span class="tag">Bash</span><span class="tag">Linux</span><span class="tag">Cron</span><span class="tag">Git</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="caps-panel" id="cap-2" role="tabpanel" hidden>
+                  <div class="cap-number">03</div>
+                  <div class="cap-body">
+                    <p class="cap-desc">Security-focused utilities and controlled testing scripts. Network awareness, automation, and system analysis designed for responsible use.</p>
+                    <div class="cap-stack">
+                      <span class="tag">Shell</span><span class="tag">Networking</span><span class="tag">Terminal</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="caps-panel" id="cap-3" role="tabpanel" hidden>
+                  <div class="cap-number">04</div>
+                  <div class="cap-body">
+                    <p class="cap-desc">Dark-mode systems with refined accents and clean structure. Smooth animations, premium interaction design with a focus on typographic precision.</p>
+                    <div class="cap-stack">
+                      <span class="tag">CSS</span><span class="tag">Animation</span><span class="tag">Typography</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- ── Footer ─────────────────────────────────────────── -->
+      <footer class="footer">
+        <div class="container footer-grid">
+          <div class="footer-brand-col">
+            <p class="footer-brand">KZ//</p>
+            <p class="footer-tagline">Crafted in terminal mode.</p>
+          </div>
+          <div class="footer-links-col">
+            <p class="footer-col-label">Navigation</p>
+            <ul>
+              <li><a href="#home">Home</a></li>
+              <li><a href="#origin">About</a></li>
+              <li><a href="#projects">Projects</a></li>
+              <li><a href="#capabilities">Skills</a></li>
+            </ul>
+          </div>
+          <div class="footer-links-col">
+            <p class="footer-col-label">Connect</p>
+            <ul>
+              <li><a href="contact.html">Contact</a></li>
+              <li><a href="https://github.com/Kaztral-ar" target="_blank" rel="noopener">GitHub</a></li>
+              <li><a href="#" target="_blank" rel="noopener">Discord</a></li>
+              <li><a href="#" target="_blank" rel="noopener">Instagram</a></li>
+            </ul>
+          </div>
+          <div class="footer-copy-col">
+            <p>© <span id="year"></span> Kaztral</p>
+            <a href="#home" class="to-top" aria-label="Back to top">↑ Top</a>
+          </div>
+        </div>
+      </footer>
+
+    </div><!-- /page-content -->
+
+    <script src="assets/js/github-projects.js"></script>
+    <script src="assets/js/main.js"></script>
+  </body>
+</html>
