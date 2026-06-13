@@ -1,347 +1,1186 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Kaztral — developer, web designer, and Bash tool builder. Portfolio of projects and capabilities." />
-    <meta name="author" content="Kaztral" />
-    <meta property="og:title" content="Kaztral | Developer Portfolio" />
-    <meta property="og:description" content="Developer portfolio — web systems, automation, UI engineering." />
-    <meta property="og:type" content="website" />
-    <title>Kaztral | Developer Portfolio</title>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Kaztral — developer, web designer, and automation builder."/>
+  <meta name="author" content="Kaztral"/>
+  <meta property="og:title" content="Kaztral | Developer Portfolio"/>
+  <meta property="og:description" content="Developer portfolio — web systems, automation, UI engineering."/>
+  <meta property="og:type" content="website"/>
+  <title>Kaztral | Developer Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet"/>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="assets/css/style.css" />
-    <style>
-      /* ── GitHub dynamic projects ── */
+  <style>
+    /* ═══════════════════════════════════════════
+       TOKENS
+    ═══════════════════════════════════════════ */
+    :root {
+      --bg:          #0b0d0b;
+      --bg-surface:  #111411;
+      --bg-card:     #141814;
+      --border:      #1f251f;
+      --border-mid:  #2a332a;
+      --green:       #39ff6b;   /* $ sign / accent */
+      --green-dim:   #1a7a35;
+      --green-glow:  rgba(57,255,107,.12);
+      --fg:          #d4d8d4;
+      --fg-dim:      #6b756b;
+      --fg-muted:    #3a423a;
+      --font-mono:   'Space Mono', monospace;
+      --font-display:'Bebas Neue', sans-serif;
+      --radius:      2px;
+      --nav-h:       52px;
+    }
 
-      /* Skeleton pulse animation while repos load */
-      @keyframes kz-pulse {
-        0%, 100% { opacity: .35; }
-        50%       { opacity: .7;  }
-      }
-      .proj-skeleton {
-        height: 3.75rem;
-        border-radius: 2px;
-        background: var(--clr-surface, #1a1a1a);
-        margin-bottom: .5rem;
-        animation: kz-pulse 1.4s ease-in-out infinite;
-      }
-      .proj-skeleton:nth-child(2) { animation-delay: .2s; }
-      .proj-skeleton:nth-child(3) { animation-delay: .4s; }
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+    button { background: none; border: none; cursor: pointer; font: inherit; color: inherit; }
+    img { display: block; max-width: 100%; }
 
-      /* Error fallback message */
-      .proj-error {
-        font-family: var(--font-mono, monospace);
-        font-size: .85rem;
-        color: var(--clr-accent, #f00);
-        margin-top: 1rem;
-        opacity: .8;
-      }
-      .proj-error a {
-        color: inherit;
-        text-decoration: underline;
-        margin-left: .5rem;
-      }
+    /* ── Scroll progress ── */
+    .scroll-progress {
+      position: fixed; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--green); transform-origin: left;
+      transform: scaleX(0); transition: transform .1s linear;
+      z-index: 9999;
+    }
 
-      /* Smooth arrow rotation on accordion open */
-      .proj-arrow {
-        display: inline-block;
-        transition: transform .2s ease;
-      }
-    </style>
-  </head>
+    /* ── Util ── */
+    .container { max-width: 900px; margin: 0 auto; padding: 0 1.25rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+    .green { color: var(--green); }
 
-  <body>
+    /* ═══════════════════════════════════════════
+       LOADER
+    ═══════════════════════════════════════════ */
+    .loader-overlay {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 10000;
+      transition: opacity .4s ease;
+    }
+    .loader-overlay.hidden { opacity: 0; pointer-events: none; }
 
-    <!-- ── Loader ─────────────────────────────────────────── -->
-    <div class="loader-overlay" id="loaderOverlay" aria-live="polite">
-      <div class="loader-inner">
-        <div class="loader-header">
-          <span class="loader-brand">KZ//</span>
-          <span class="loader-status" id="loaderStatus">INIT</span>
+    .loader-inner { width: min(420px, 90vw); }
+
+    .loader-header {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: .75rem;
+      font-size: .7rem; letter-spacing: .14em; text-transform: uppercase;
+    }
+    .loader-brand { color: var(--green); font-size: 1rem; font-family: var(--font-display); }
+    .loader-status { color: var(--fg-dim); }
+
+    .loader-bar-wrap {
+      height: 2px; background: var(--border-mid); margin-bottom: 1.4rem; overflow: hidden;
+    }
+    .loader-bar {
+      height: 100%; width: 0; background: var(--green);
+      transition: width .08s linear;
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .loader-lines { display: flex; flex-direction: column; gap: .3rem; min-height: 7rem; }
+    .lline {
+      font-size: .72rem; color: var(--fg-dim);
+      overflow: hidden; white-space: nowrap;
+      opacity: 0; transition: opacity .2s ease;
+    }
+    .lline.visible { opacity: 1; }
+    .lline[data-style="top"]  { color: var(--fg); }
+    .lline[data-style="boot"] { color: var(--green); }
+    .lline--ok { color: var(--green); font-weight: 700; }
+
+    .loader-pct {
+      margin-top: 1rem; text-align: right;
+      font-size: .68rem; color: var(--fg-dim); letter-spacing: .1em;
+    }
+
+    /* ═══════════════════════════════════════════
+       NAV
+    ═══════════════════════════════════════════ */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      background: rgba(11,13,11,.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      z-index: 200;
+    }
+
+    .nav {
+      height: 100%;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      color: var(--green);
+      letter-spacing: .04em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .nav-menu {
+      display: flex; align-items: center; gap: .1rem;
+    }
+
+    .nav-link {
+      font-size: .62rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--fg-dim);
+      padding: .35rem .55rem;
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      transition: color .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .nav-link:hover,
+    .nav-link.active { color: var(--green); }
+    .nav-link--contact {
+      border-color: var(--border-mid);
+      color: var(--fg);
+      margin-left: .4rem;
+    }
+    .nav-link--contact:hover { border-color: var(--green); color: var(--green); }
+
+    /* Hamburger */
+    .nav-toggle {
+      display: none;
+      flex-direction: column; gap: 5px;
+      padding: .4rem;
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius);
+    }
+    .nav-toggle span {
+      display: block; width: 20px; height: 1.5px;
+      background: var(--fg);
+      transition: transform .2s ease, opacity .2s ease;
+    }
+    .nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    .nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+    .nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+    /* Drawer (mobile) */
+    .nav-drawer {
+      position: fixed; top: var(--nav-h); left: 0; right: 0;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.25rem 1.25rem;
+      display: none;
+      z-index: 199;
+    }
+    .nav-drawer.open { display: block; }
+    .nav-drawer ul { display: flex; flex-direction: column; gap: .5rem; }
+    .nav-drawer .nav-link { font-size: .7rem; display: block; padding: .5rem .25rem; }
+    .nav-drawer .nav-link--contact { border-color: var(--border-mid); display: inline-block; margin-top: .25rem; }
+
+    /* ═══════════════════════════════════════════
+       PAGE SHELL
+    ═══════════════════════════════════════════ */
+    .page-content { padding-top: var(--nav-h); }
+
+    /* ── Section base ── */
+    .section { padding: 5rem 0; }
+    .section--ruled { border-top: 1px solid var(--border); }
+
+    .section-header { margin-bottom: 2.5rem; }
+    .section-header--row {
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .kicker {
+      font-size: .6rem; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--fg-dim); margin-bottom: .6rem;
+    }
+    .kicker-num { color: var(--green); margin-right: .4rem; }
+
+    .section-header h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.9rem, 5vw, 2.8rem);
+      line-height: 1.05; letter-spacing: .02em;
+      color: #e0e4e0;
+    }
+
+    .section-count {
+      font-size: .6rem; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--fg-dim); white-space: nowrap;
+    }
+
+    /* Reveal animation */
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .5s ease, transform .5s ease; }
+    .reveal.in-view { opacity: 1; transform: none; }
+
+    /* ═══════════════════════════════════════════
+       HERO
+    ═══════════════════════════════════════════ */
+    .hero {
+      min-height: calc(100vh - var(--nav-h));
+      display: flex; align-items: center;
+      position: relative; overflow: hidden;
+      padding: 4rem 0 3rem;
+    }
+
+    /* Matrix-style code BG */
+    .hero-code-bg {
+      position: absolute; inset: 0;
+      pointer-events: none; overflow: hidden;
+      opacity: .045;
+    }
+    .hero-code-bg pre {
+      font-family: var(--font-mono);
+      font-size: .55rem; line-height: 1.5;
+      color: var(--green);
+      white-space: pre-wrap; word-break: break-all;
+      padding: 1rem;
+    }
+
+    .hero-content { position: relative; z-index: 1; }
+
+    .hero-eyebrow {
+      display: flex; align-items: center; gap: .75rem;
+      font-size: .58rem; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--fg-dim); margin-bottom: 1rem;
+    }
+    .hero-index { color: var(--green); }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(4.5rem, 16vw, 9rem);
+      line-height: .92; letter-spacing: .03em;
+      color: #e8ece8;
+      margin-bottom: 1.2rem;
+    }
+    /* glitch on hover */
+    .hero-title:hover { animation: glitch .4s steps(2) forwards; }
+    @keyframes glitch {
+      0%   { text-shadow: 2px 0 var(--green), -2px 0 #ff003c; }
+      25%  { text-shadow: -2px 0 var(--green),  2px 0 #ff003c; clip-path: inset(20% 0 60% 0); }
+      50%  { text-shadow: 2px 2px var(--green), -2px -2px #ff003c; clip-path: inset(50% 0 20% 0); }
+      75%  { text-shadow: -1px 0 var(--green); clip-path: inset(0); }
+      100% { text-shadow: none; }
+    }
+
+    .hero-descriptor {
+      font-size: .8rem; color: var(--fg-dim);
+      margin-bottom: 2rem;
+    }
+    .hero-descriptor::before { content: '$ '; color: var(--green); }
+
+    /* Info strip */
+    .hero-strip {
+      display: flex; flex-wrap: wrap; gap: 0;
+      border: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+    .hero-strip-cell {
+      flex: 1 1 140px;
+      padding: .6rem .85rem;
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: .25rem;
+    }
+    .hero-strip-cell:last-child { border-right: none; }
+    .strip-label { font-size: .5rem; letter-spacing: .14em; text-transform: uppercase; color: var(--fg-muted); }
+    .strip-value { font-size: .72rem; color: var(--fg); }
+    .strip-value--online { color: var(--green); }
+    .strip-value--online::before { content: '● '; }
+
+    /* CTA buttons */
+    .hero-actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
+    .btn {
+      font-family: var(--font-mono);
+      font-size: .65rem; letter-spacing: .1em; text-transform: uppercase;
+      padding: .6rem 1.2rem;
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      transition: background .15s, color .15s, border-color .15s, box-shadow .15s;
+    }
+    .btn-primary {
+      background: var(--green); color: #070a07; border-color: var(--green);
+    }
+    .btn-primary:hover { box-shadow: 0 0 14px var(--green-glow); filter: brightness(1.1); }
+    .btn-ghost {
+      border-color: var(--border-mid); color: var(--fg);
+    }
+    .btn-ghost:hover { border-color: var(--green); color: var(--green); }
+
+    /* Scroll indicator */
+    .scroll-indicator {
+      display: flex; align-items: flex-start; width: 1px; height: 48px;
+    }
+    .scroll-line {
+      display: block; width: 1px; height: 100%;
+      background: linear-gradient(to bottom, var(--green), transparent);
+      animation: scroll-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes scroll-pulse { 0%,100%{opacity:.4;transform:scaleY(1)} 50%{opacity:1;transform:scaleY(.6)} }
+
+    /* ═══════════════════════════════════════════
+       ABOUT
+    ═══════════════════════════════════════════ */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    /* Terminal window */
+    .terminal-window {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .terminal-bar {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: .45rem .75rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-r { background: #ff5f56; }
+    .dot-y { background: #ffbd2e; }
+    .dot-g { background: var(--green); }
+    .terminal-title { font-size: .6rem; color: var(--fg-dim); margin-left: .25rem; }
+    .terminal-path  { font-size: .6rem; color: var(--fg-muted); margin-left: auto; }
+
+    .terminal-body { padding: 1rem 1rem 1.2rem; min-height: 180px; }
+
+    .about-accent {
+      font-size: .72rem; color: var(--green);
+      margin-bottom: .75rem;
+    }
+    .about-line {
+      font-size: .72rem; color: var(--fg-dim); min-height: 1.2rem; margin-bottom: .2rem;
+    }
+    .about-line .prompt { color: var(--green); }
+
+    /* Meta aside */
+    .about-meta {
+      border: 1px solid var(--border);
+      display: flex; flex-direction: column;
+    }
+    .meta-cell {
+      padding: .6rem .8rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: .18rem;
+    }
+    .meta-cell:last-child { border-bottom: none; }
+    .meta-label { font-size: .48rem; letter-spacing: .14em; text-transform: uppercase; color: var(--fg-muted); }
+    .meta-value  { font-size: .7rem; color: var(--fg); }
+
+    /* ═══════════════════════════════════════════
+       PROJECTS
+    ═══════════════════════════════════════════ */
+    .project-list { display: flex; flex-direction: column; gap: 0; }
+
+    /* Skeleton */
+    @keyframes kz-pulse { 0%,100%{opacity:.25} 50%{opacity:.55} }
+    .proj-skeleton {
+      height: 72px; background: var(--bg-card);
+      border: 1px solid var(--border); margin-bottom: 1px;
+      animation: kz-pulse 1.4s ease-in-out infinite;
+    }
+    .proj-skeleton:nth-child(2) { animation-delay: .2s; }
+    .proj-skeleton:nth-child(3) { animation-delay: .4s; }
+
+    /* Project row */
+    .proj-row {
+      border: 1px solid var(--border);
+      margin-bottom: 1px;
+      transition: border-color .15s, background .15s;
+    }
+    .proj-row:hover { border-color: var(--border-mid); background: var(--bg-card); }
+
+    .proj-header {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .85rem 1rem;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+    }
+    .proj-header:focus-visible { outline: 1px solid var(--green); outline-offset: -1px; }
+
+    .proj-prompt { color: var(--green); font-size: .8rem; flex-shrink: 0; }
+    .proj-name   { font-size: .78rem; color: #d4d8d4; flex: 1; }
+    .proj-lang   { font-size: .58rem; color: var(--fg-dim); letter-spacing: .08em; }
+    .proj-stars  { font-size: .58rem; color: var(--fg-dim); flex-shrink: 0; white-space: nowrap; }
+    .proj-arrow  { color: var(--fg-muted); font-size: .75rem; flex-shrink: 0; transition: transform .2s ease; }
+    .proj-row.open .proj-arrow { transform: rotate(90deg); }
+
+    .proj-body {
+      display: none;
+      padding: 0 1rem .85rem 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .proj-row.open .proj-body { display: block; }
+
+    .proj-desc   { font-size: .7rem; color: var(--fg-dim); margin-bottom: .75rem; margin-top: .6rem; line-height: 1.6; }
+    .proj-topics { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .75rem; }
+    .proj-topic  { font-size: .55rem; letter-spacing: .08em; padding: .2rem .5rem; border: 1px solid var(--border-mid); color: var(--fg-dim); border-radius: var(--radius); }
+    .proj-links  { display: flex; gap: .75rem; }
+    .proj-link   { font-size: .6rem; letter-spacing: .08em; color: var(--green); text-decoration: underline; }
+    .proj-link:hover { opacity: .75; }
+
+    /* Error */
+    .proj-error  { font-size: .75rem; color: #ff5f56; margin-top: 1rem; }
+    .proj-error a { color: inherit; text-decoration: underline; margin-left: .5rem; }
+
+    /* ═══════════════════════════════════════════
+       CAPABILITIES (fixed tab system)
+    ═══════════════════════════════════════════ */
+    .caps-layout {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      border: 1px solid var(--border);
+    }
+
+    .caps-tabs {
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+    }
+
+    .caps-tab {
+      padding: .9rem 1rem;
+      font-size: .62rem; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--fg-dim);
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      transition: background .15s, color .15s;
+      position: relative;
+    }
+    .caps-tab:last-child { border-bottom: none; }
+    .caps-tab:hover { color: var(--fg); background: var(--bg-card); }
+    .caps-tab.is-active {
+      color: var(--green);
+      background: var(--bg-card);
+    }
+    .caps-tab.is-active::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 2px; background: var(--green);
+    }
+    .caps-tab::after { content: ' $'; color: var(--green-dim); }
+    .caps-tab.is-active::after { color: var(--green); }
+
+    .caps-panels { padding: 1.5rem 1.25rem; }
+
+    .caps-panel { display: none; }
+    .caps-panel.is-active { display: flex; gap: 1rem; align-items: flex-start; }
+
+    .cap-number {
+      font-family: var(--font-display);
+      font-size: 3.5rem; line-height: 1;
+      color: var(--fg-muted);
+      flex-shrink: 0; width: 3.5rem;
+    }
+
+    .cap-body { flex: 1; }
+
+    .cap-title {
+      font-size: .65rem; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--green); margin-bottom: .6rem;
+    }
+    .cap-title::before { content: '$ '; }
+
+    .cap-desc { font-size: .72rem; color: var(--fg-dim); line-height: 1.7; margin-bottom: 1rem; }
+
+    .cap-stack { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .tag {
+      font-size: .56rem; letter-spacing: .1em; text-transform: uppercase;
+      padding: .22rem .6rem;
+      border: 1px solid var(--border-mid);
+      color: var(--fg-dim);
+      border-radius: var(--radius);
+      transition: border-color .15s, color .15s;
+    }
+    .tag:hover { border-color: var(--green); color: var(--green); }
+
+    /* ═══════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════ */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 0 2rem;
+      margin-top: 1rem;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .footer-brand { font-family: var(--font-display); font-size: 1.5rem; color: var(--green); margin-bottom: .3rem; }
+    .footer-tagline { font-size: .6rem; color: var(--fg-dim); }
+    .footer-tagline::before { content: '$ '; color: var(--green); }
+
+    .footer-col-label {
+      font-size: .52rem; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--fg-muted); margin-bottom: .65rem;
+    }
+    .footer-links-col ul { display: flex; flex-direction: column; gap: .35rem; }
+    .footer-links-col a { font-size: .65rem; color: var(--fg-dim); transition: color .15s; }
+    .footer-links-col a:hover { color: var(--green); }
+
+    .footer-copy-col {
+      display: flex; flex-direction: column; align-items: flex-end; gap: .5rem;
+    }
+    .footer-copy-col p { font-size: .58rem; color: var(--fg-muted); }
+    .to-top {
+      font-size: .58rem; color: var(--green); letter-spacing: .1em;
+      border: 1px solid var(--border-mid);
+      padding: .3rem .6rem; border-radius: var(--radius);
+      transition: border-color .15s;
+    }
+    .to-top:hover { border-color: var(--green); }
+
+    /* ═══════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════ */
+    @media (max-width: 680px) {
+      .nav-menu  { display: none; }
+      .nav-toggle { display: flex; }
+
+      .about-grid { grid-template-columns: 1fr; }
+      .about-meta { display: grid; grid-template-columns: 1fr 1fr; }
+
+      .hero-strip { flex-direction: column; }
+      .hero-strip-cell { border-right: none; border-bottom: 1px solid var(--border); }
+      .hero-strip-cell:last-child { border-bottom: none; }
+
+      .caps-layout { grid-template-columns: 1fr; }
+      .caps-tabs { flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--border); }
+      .caps-tab { border-bottom: none; border-right: 1px solid var(--border); flex: 1 1 auto; text-align: center; }
+      .caps-tab.is-active::before { top: auto; bottom: 0; left: 0; right: 0; width: auto; height: 2px; }
+
+      .caps-panel.is-active { flex-direction: column; }
+      .cap-number { font-size: 2.5rem; }
+
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .footer-copy-col { align-items: flex-start; }
+    }
+
+    @media (max-width: 400px) {
+      .about-meta { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Loader ───────────────────────────── -->
+<div class="loader-overlay" id="loaderOverlay" role="status" aria-live="polite">
+  <div class="loader-inner">
+    <div class="loader-header">
+      <span class="loader-brand">KZ//</span>
+      <span class="loader-status" id="loaderStatus">INIT</span>
+    </div>
+    <div class="loader-bar-wrap">
+      <div class="loader-bar" id="loaderBar"></div>
+    </div>
+    <div class="loader-lines" id="loaderLines">
+      <p class="lline" data-style="top">┌──(kaztral㉿portfolio)-[~]</p>
+      <p class="lline" data-style="boot">└─$ boot --init</p>
+      <p class="lline">checking system status...</p>
+      <p class="lline">establishing secure session...</p>
+      <p class="lline">loading modules...</p>
+      <p class="lline lline--ok">STATUS: ONLINE</p>
+    </div>
+    <div class="loader-pct" id="loaderPct">0%</div>
+  </div>
+</div>
+
+<!-- ── Page ─────────────────────────────── -->
+<div class="page-content" id="pageContent" style="visibility:hidden">
+  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+  <!-- NAV -->
+  <header class="site-header" id="top">
+    <nav class="container nav" aria-label="Primary navigation">
+      <a href="#home" class="brand" aria-label="Home">KZ//</a>
+
+      <ul class="nav-menu" id="navMenu" role="list">
+        <li><a class="nav-link" href="#home"         data-section="home">Home</a></li>
+        <li><a class="nav-link" href="#origin"       data-section="origin">About</a></li>
+        <li><a class="nav-link" href="#projects"     data-section="projects">Projects</a></li>
+        <li><a class="nav-link" href="#capabilities" data-section="capabilities">Skills</a></li>
+        <li><a class="nav-link nav-link--contact" href="contact.html">Contact</a></li>
+      </ul>
+
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navDrawer">
+        <span></span><span></span><span></span>
+        <span class="sr-only">Toggle menu</span>
+      </button>
+    </nav>
+
+    <div class="nav-drawer" id="navDrawer" aria-hidden="true">
+      <ul role="list">
+        <li><a class="nav-link" href="#home">Home</a></li>
+        <li><a class="nav-link" href="#origin">About</a></li>
+        <li><a class="nav-link" href="#projects">Projects</a></li>
+        <li><a class="nav-link" href="#capabilities">Skills</a></li>
+        <li><a class="nav-link nav-link--contact" href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main>
+    <!-- ── HERO ───────────────────────────── -->
+    <section class="hero section" id="home" aria-label="Hero">
+      <div class="hero-code-bg" id="heroCodeBg" aria-hidden="true"><pre id="heroCodePre"></pre></div>
+
+      <div class="container hero-content reveal">
+        <div class="hero-eyebrow">
+          <span class="hero-index">001</span>
+          <span class="hero-tag">SYSTEM INTERFACE ONLINE</span>
         </div>
-        <div class="loader-bar-wrap">
-          <div class="loader-bar" id="loaderBar"></div>
+
+        <h1 class="hero-title">KAZTRAL</h1>
+
+        <div class="hero-sub">
+          <p class="hero-descriptor">Developer &amp; automation builder</p>
         </div>
-        <div class="loader-lines" id="loaderLines">
-          <p class="lline" data-text="┌──(kaztral㉿portfolio)-[~]" data-style="top"></p>
-          <p class="lline" data-text="└─$ boot --init" data-style="boot"></p>
-          <p class="lline" data-text="checking system status..."></p>
-          <p class="lline" data-text="establishing secure session..."></p>
-          <p class="lline" data-text="loading modules..."></p>
-          <p class="lline lline--ok" data-text="STATUS: ONLINE"></p>
+
+        <div class="hero-strip">
+          <div class="hero-strip-cell">
+            <span class="strip-label">ROLE</span>
+            <span class="strip-value">Web + Systems</span>
+          </div>
+          <div class="hero-strip-cell">
+            <span class="strip-label">STACK</span>
+            <span class="strip-value" id="heroStack">Python · JS · Bash</span>
+          </div>
+          <div class="hero-strip-cell">
+            <span class="strip-label">STATUS</span>
+            <span class="strip-value strip-value--online">Available</span>
+          </div>
+          <div class="hero-strip-cell">
+            <span class="strip-label">PROJECTS</span>
+            <span class="strip-value" id="heroProjectCount">— listed</span>
+          </div>
         </div>
-        <div class="loader-pct" id="loaderPct">0%</div>
+
+        <div class="hero-actions">
+          <a href="#projects" class="btn btn-primary">View Projects</a>
+          <a href="contact.html" class="btn btn-ghost">Get in Touch</a>
+        </div>
+
+        <a href="#origin" class="scroll-indicator" aria-label="Scroll to About">
+          <span class="scroll-line"></span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ── ABOUT ──────────────────────────── -->
+    <section class="section section--ruled" id="origin" aria-label="About">
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="kicker"><span class="kicker-num">002</span> About</p>
+          <h2>Terminal session:<br/>Kaztral</h2>
+        </div>
+
+        <div class="about-grid">
+          <article class="terminal-window" aria-label="About profile terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-r"></span>
+              <span class="dot dot-y"></span>
+              <span class="dot dot-g"></span>
+              <span class="terminal-title">profile.log</span>
+              <span class="terminal-path">~/kaztral</span>
+            </div>
+            <div class="terminal-body">
+              <p class="about-accent" id="aboutAccent"></p>
+              <div class="about-lines" aria-live="polite" id="aboutLines">
+                <p class="about-line" data-line="Hello, I am Kaztral."></p>
+                <p class="about-line" data-line="Developer, web designer, and automation builder."></p>
+                <p class="about-line" data-line="I craft reliable web systems and automation workflows."></p>
+                <p class="about-line" data-line="I value clean architecture, speed, and practical UX."></p>
+              </div>
+            </div>
+          </article>
+
+          <aside class="about-meta">
+            <div class="meta-cell">
+              <span class="meta-label">HANDLE</span>
+              <span class="meta-value">Kaztral</span>
+            </div>
+            <div class="meta-cell">
+              <span class="meta-label">GITHUB</span>
+              <span class="meta-value">
+                <a href="https://github.com/kaztral-ar" target="_blank" rel="noopener"
+                   style="color:var(--green);text-decoration:underline;">/kaztral-ar</a>
+              </span>
+            </div>
+            <div class="meta-cell">
+              <span class="meta-label">FOCUS</span>
+              <span class="meta-value">Web · Automation · Security</span>
+            </div>
+            <div class="meta-cell">
+              <span class="meta-label">ENVIRONMENT</span>
+              <span class="meta-value">Linux · Terminal · Termux</span>
+            </div>
+            <div class="meta-cell">
+              <span class="meta-label">STYLE</span>
+              <span class="meta-value">Zero-dep · Minimal · Fast</span>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PROJECTS ───────────────────────── -->
+    <section class="section section--ruled" id="projects" aria-label="Projects">
+      <div class="container reveal">
+        <div class="section-header section-header--row">
+          <div>
+            <p class="kicker"><span class="kicker-num">003</span> Projects</p>
+            <h2>Built for automation,<br/>speed &amp; utility.</h2>
+          </div>
+          <span class="section-count" id="projectCount">— works</span>
+        </div>
+
+        <div class="project-list" id="projectList" role="list" aria-live="polite" aria-busy="true">
+          <div class="proj-skeleton" aria-hidden="true"></div>
+          <div class="proj-skeleton" aria-hidden="true"></div>
+          <div class="proj-skeleton" aria-hidden="true"></div>
+        </div>
+
+        <p class="proj-error" id="projectError" hidden>
+          Could not load projects from GitHub.
+          <a href="https://github.com/kaztral-ar" target="_blank" rel="noopener">View on GitHub ↗</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- ── CAPABILITIES ───────────────────── -->
+    <section class="section section--ruled" id="capabilities" aria-label="Core Capabilities">
+      <div class="container reveal">
+        <div class="section-header">
+          <p class="kicker"><span class="kicker-num">004</span> Core Capabilities</p>
+          <h2>Technical range with<br/>execution discipline.</h2>
+        </div>
+
+        <div class="caps-layout">
+          <div class="caps-tabs" role="tablist" aria-label="Capability categories">
+            <button class="caps-tab is-active" role="tab" aria-selected="true"
+                    aria-controls="cap-0" id="tab-0" data-cap="0">Web Systems</button>
+            <button class="caps-tab" role="tab" aria-selected="false"
+                    aria-controls="cap-1" id="tab-1" data-cap="1">Automation</button>
+            <button class="caps-tab" role="tab" aria-selected="false"
+                    aria-controls="cap-2" id="tab-2" data-cap="2">Security Tools</button>
+            <button class="caps-tab" role="tab" aria-selected="false"
+                    aria-controls="cap-3" id="tab-3" data-cap="3">UI Engineering</button>
+          </div>
+
+          <div class="caps-panels">
+
+            <div class="caps-panel is-active" id="cap-0" role="tabpanel" aria-labelledby="tab-0">
+              <div class="cap-number">01</div>
+              <div class="cap-body">
+                <p class="cap-title">Web Systems</p>
+                <p class="cap-desc">Modern responsive interfaces built with clean architecture. Focus on performance, minimal UI, and scalable frontend systems that are fast and maintainable. From Flask backends to React SPAs — full-stack and production-ready.</p>
+                <div class="cap-stack">
+                  <span class="tag">HTML</span>
+                  <span class="tag">CSS</span>
+                  <span class="tag">JavaScript</span>
+                  <span class="tag">React</span>
+                  <span class="tag">Python</span>
+                  <span class="tag">Flask</span>
+                  <span class="tag">Node.js</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="caps-panel" id="cap-1" role="tabpanel" aria-labelledby="tab-1">
+              <div class="cap-number">02</div>
+              <div class="cap-body">
+                <p class="cap-title">Automation</p>
+                <p class="cap-desc">CLI and Bash automation for real workflow problems. Task scheduling, file pipeline tools, system scripting, and single-file Python apps built for reliability under real conditions — including Termux and Linux environments.</p>
+                <div class="cap-stack">
+                  <span class="tag">Bash</span>
+                  <span class="tag">Python</span>
+                  <span class="tag">Linux</span>
+                  <span class="tag">Cron</span>
+                  <span class="tag">Git</span>
+                  <span class="tag">Termux</span>
+                  <span class="tag">SQLite</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="caps-panel" id="cap-2" role="tabpanel" aria-labelledby="tab-2">
+              <div class="cap-number">03</div>
+              <div class="cap-body">
+                <p class="cap-title">Security Tools</p>
+                <p class="cap-desc">Security-focused utilities and controlled testing scripts. Network awareness, tunnel integration (Cloudflare), automation, and system analysis tools designed for responsible, practical use.</p>
+                <div class="cap-stack">
+                  <span class="tag">Shell</span>
+                  <span class="tag">Networking</span>
+                  <span class="tag">Cloudflare Tunnels</span>
+                  <span class="tag">Terminal</span>
+                  <span class="tag">Python</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="caps-panel" id="cap-3" role="tabpanel" aria-labelledby="tab-3">
+              <div class="cap-number">04</div>
+              <div class="cap-body">
+                <p class="cap-title">UI Engineering</p>
+                <p class="cap-desc">Dark-mode systems with refined accents and clean structure. Smooth animations, premium interaction design, typographic precision, and component architecture that ships fast and looks intentional.</p>
+                <div class="cap-stack">
+                  <span class="tag">CSS</span>
+                  <span class="tag">Animation</span>
+                  <span class="tag">Typography</span>
+                  <span class="tag">React</span>
+                  <span class="tag">Three.js</span>
+                  <span class="tag">GSAP</span>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /caps-panels -->
+        </div><!-- /caps-layout -->
+      </div>
+    </section>
+  </main>
+
+  <!-- ── FOOTER ─────────────────────────── -->
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div class="footer-brand-col">
+        <p class="footer-brand">KZ//</p>
+        <p class="footer-tagline">Crafted in terminal mode.</p>
+      </div>
+      <div class="footer-links-col">
+        <p class="footer-col-label">Navigation</p>
+        <ul>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#origin">About</a></li>
+          <li><a href="#projects">Projects</a></li>
+          <li><a href="#capabilities">Skills</a></li>
+        </ul>
+      </div>
+      <div class="footer-links-col">
+        <p class="footer-col-label">Connect</p>
+        <ul>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="https://github.com/kaztral-ar" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://instagram.com/gokul.arr" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="mailto:gokullogin46@gmail.com">Email</a></li>
+        </ul>
+      </div>
+      <div class="footer-copy-col">
+        <p>© <span id="year"></span> Kaztral</p>
+        <a href="#home" class="to-top" aria-label="Back to top">↑ Top</a>
       </div>
     </div>
+  </footer>
 
-    <!-- ── Page ───────────────────────────────────────────── -->
-    <div class="page-content" id="pageContent">
-      <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+</div><!-- /page-content -->
 
-      <!-- Nav -->
-      <header class="site-header" id="top">
-        <nav class="container nav" aria-label="Primary navigation">
-          <a href="#home" class="brand" aria-label="Home">KZ//</a>
+<script>
+/* ═══════════════════════════════════════════════════
+   LOADER
+═══════════════════════════════════════════════════ */
+(function(){
+  const overlay = document.getElementById('loaderOverlay');
+  const bar     = document.getElementById('loaderBar');
+  const pct     = document.getElementById('loaderPct');
+  const status  = document.getElementById('loaderStatus');
+  const lines   = document.querySelectorAll('.lline');
+  const page    = document.getElementById('pageContent');
 
-          <ul class="nav-menu" id="navMenu" role="list">
-            <li><a class="nav-link active" href="#home" data-section="home">Home</a></li>
-            <li><a class="nav-link" href="#origin" data-section="origin">About</a></li>
-            <li><a class="nav-link" href="#projects" data-section="projects">Projects</a></li>
-            <li><a class="nav-link" href="#capabilities" data-section="capabilities">Skills</a></li>
-            <li><a class="nav-link nav-link--contact" href="contact.html">Contact</a></li>
-          </ul>
+  const statuses = ['INIT','BOOT','LOAD','CHECK','READY'];
+  let progress = 0;
 
-          <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navDrawer">
-            <span></span><span></span><span></span>
-            <span class="sr-only">Toggle menu</span>
-          </button>
-        </nav>
+  const interval = setInterval(() => {
+    progress = Math.min(progress + Math.random() * 14 + 4, 100);
+    bar.style.width = progress + '%';
+    pct.textContent = Math.round(progress) + '%';
+    status.textContent = statuses[Math.min(Math.floor(progress / 22), statuses.length - 1)];
 
-        <div class="nav-drawer" id="navDrawer" aria-hidden="true">
-          <ul role="list">
-            <li><a class="nav-link" href="#home">Home</a></li>
-            <li><a class="nav-link" href="#origin">About</a></li>
-            <li><a class="nav-link" href="#projects">Projects</a></li>
-            <li><a class="nav-link" href="#capabilities">Skills</a></li>
-            <li><a class="nav-link" href="contact.html">Contact</a></li>
-          </ul>
+    const lineIdx = Math.floor((progress / 100) * lines.length);
+    for(let i = 0; i <= lineIdx && i < lines.length; i++){
+      lines[i].classList.add('visible');
+    }
+
+    if(progress >= 100){
+      clearInterval(interval);
+      status.textContent = 'ONLINE';
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        page.style.visibility = '';
+        setTimeout(() => overlay.remove(), 450);
+      }, 320);
+    }
+  }, 90);
+})();
+
+/* ═══════════════════════════════════════════════════
+   HERO CODE BG
+═══════════════════════════════════════════════════ */
+(function(){
+  const snippets = [
+    'def build_server(host, port):','    app = Flask(__name__)','    db = sqlite3.connect("store.db")',
+    'if __name__ == "__main__":','    app.run(host, port)',
+    'const fetchRepos = async (user) => {','  const res = await fetch(`/api/repos/${user}`);',
+    '  return res.json();','};',
+    '#!/usr/bin/env bash','set -euo pipefail',
+    'tunnel_up() {','  cloudflared tunnel --url localhost:$PORT','  echo "$ tunnel active"','}',
+    'SELECT id, name, stars FROM projects','WHERE lang = "Python" ORDER BY stars DESC;',
+    'git commit -m "feat: zero-dep automation"',
+    'curl -s api.github.com/users/kaztral-ar/repos',
+    'npm run build && rsync -avz dist/ server:~/app/',
+    'class Terminal:','    def __init__(self):','        self.prompt = "$ "',
+    'for repo in repos:','    print(f"  {repo[name]} [{repo[lang]}]")',
+  ];
+  const pre = document.getElementById('heroCodePre');
+  let text = '';
+  for(let i = 0; i < 60; i++) text += snippets[i % snippets.length] + '\n';
+  pre.textContent = text;
+})();
+
+/* ═══════════════════════════════════════════════════
+   SCROLL: progress bar + reveal + nav active
+═══════════════════════════════════════════════════ */
+(function(){
+  const prog     = document.getElementById('scrollProgress');
+  const reveals  = document.querySelectorAll('.reveal');
+  const sections = document.querySelectorAll('main section[id]');
+  const navLinks = document.querySelectorAll('.nav-link[data-section]');
+
+  function onScroll(){
+    // progress bar
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    prog.style.transform = `scaleX(${total > 0 ? window.scrollY / total : 0})`;
+
+    // reveal
+    reveals.forEach(el => {
+      if(el.getBoundingClientRect().top < window.innerHeight * .88) el.classList.add('in-view');
+    });
+
+    // active nav
+    let current = '';
+    sections.forEach(sec => {
+      if(window.scrollY >= sec.offsetTop - 80) current = sec.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.dataset.section === current);
+    });
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+/* ═══════════════════════════════════════════════════
+   MOBILE NAV
+═══════════════════════════════════════════════════ */
+(function(){
+  const toggle = document.getElementById('navToggle');
+  const drawer = document.getElementById('navDrawer');
+
+  toggle.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!open));
+    drawer.setAttribute('aria-hidden', String(open));
+    drawer.classList.toggle('open', !open);
+  });
+
+  // close on link click
+  drawer.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      toggle.setAttribute('aria-expanded', 'false');
+      drawer.setAttribute('aria-hidden', 'true');
+      drawer.classList.remove('open');
+    });
+  });
+})();
+
+/* ═══════════════════════════════════════════════════
+   ABOUT TYPEWRITER
+═══════════════════════════════════════════════════ */
+(function(){
+  const accent = document.getElementById('aboutAccent');
+  const lines  = document.querySelectorAll('.about-line');
+  let started  = false;
+
+  function typeText(el, text, cb){
+    let i = 0;
+    const tick = setInterval(() => {
+      el.textContent += text[i++];
+      if(i >= text.length){ clearInterval(tick); if(cb) setTimeout(cb, 220); }
+    }, 28);
+  }
+
+  function startTyping(){
+    typeText(accent, '* Loading Kaztral profile...', () => {
+      let idx = 0;
+      function nextLine(){
+        if(idx >= lines.length) return;
+        const el = lines[idx++];
+        const prompt = document.createElement('span');
+        prompt.className = 'prompt';
+        prompt.textContent = '$ ';
+        el.appendChild(prompt);
+        typeText(el, el.dataset.line, nextLine);
+      }
+      nextLine();
+    });
+  }
+
+  // Trigger when section scrolls into view
+  const section = document.getElementById('origin');
+  const obs = new IntersectionObserver(entries => {
+    if(entries[0].isIntersecting && !started){
+      started = true;
+      obs.disconnect();
+      setTimeout(startTyping, 300);
+    }
+  }, { threshold: .2 });
+  obs.observe(section);
+})();
+
+/* ═══════════════════════════════════════════════════
+   CAPABILITIES TABS (fixed)
+═══════════════════════════════════════════════════ */
+(function(){
+  const tabs   = document.querySelectorAll('.caps-tab');
+  const panels = document.querySelectorAll('.caps-panel');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const idx = tab.dataset.cap;
+
+      tabs.forEach(t => { t.classList.remove('is-active'); t.setAttribute('aria-selected','false'); });
+      panels.forEach(p => { p.classList.remove('is-active'); p.setAttribute('hidden',''); });
+
+      tab.classList.add('is-active');
+      tab.setAttribute('aria-selected','true');
+
+      const panel = document.getElementById('cap-' + idx);
+      panel.classList.add('is-active');
+      panel.removeAttribute('hidden');
+    });
+  });
+
+  // init: make sure panel 0 has no hidden attr
+  document.getElementById('cap-0').removeAttribute('hidden');
+})();
+
+/* ═══════════════════════════════════════════════════
+   GITHUB PROJECTS  (live fetch from kaztral-ar)
+═══════════════════════════════════════════════════ */
+(function(){
+  const list       = document.getElementById('projectList');
+  const errorEl    = document.getElementById('projectError');
+  const countEl    = document.getElementById('projectCount');
+  const heroCount  = document.getElementById('heroProjectCount');
+  const heroStack  = document.getElementById('heroStack');
+
+  // Language → colour dot map
+  const langColor = {
+    Python:'#3572A5', JavaScript:'#f1e05a', TypeScript:'#2b7489',
+    HTML:'#e34c26', CSS:'#563d7c', Shell:'#89e051',
+    'Jupyter Notebook':'#DA5B0B', Go:'#00ADD8', Rust:'#dea584',
+    C:'#555555', 'C++':'#f34b7d'
+  };
+
+  function buildRow(repo){
+    const row = document.createElement('div');
+    row.className = 'proj-row';
+    row.setAttribute('role','listitem');
+
+    const lang     = repo.language || '';
+    const dot      = langColor[lang] ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${langColor[lang]};margin-right:.35rem;"></span>` : '';
+    const stars    = repo.stargazers_count > 0 ? `★ ${repo.stargazers_count}` : '';
+    const desc     = repo.description || 'No description provided.';
+    const topics   = (repo.topics || []).slice(0, 6).map(t => `<span class="proj-topic">${t}</span>`).join('');
+    const homepage = repo.homepage ? `<a class="proj-link" href="${repo.homepage}" target="_blank" rel="noopener">Live ↗</a>` : '';
+
+    row.innerHTML = `
+      <button class="proj-header" aria-expanded="false">
+        <span class="proj-prompt">$</span>
+        <span class="proj-name">${repo.name}</span>
+        ${lang ? `<span class="proj-lang">${dot}${lang}</span>` : ''}
+        ${stars ? `<span class="proj-stars">${stars}</span>` : ''}
+        <span class="proj-arrow">›</span>
+      </button>
+      <div class="proj-body">
+        <p class="proj-desc">${desc}</p>
+        ${topics ? `<div class="proj-topics">${topics}</div>` : ''}
+        <div class="proj-links">
+          <a class="proj-link" href="${repo.html_url}" target="_blank" rel="noopener">GitHub ↗</a>
+          ${homepage}
         </div>
-      </header>
+      </div>`;
 
-      <main>
+    const btn   = row.querySelector('.proj-header');
+    btn.addEventListener('click', () => {
+      const open = row.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+    });
 
-        <!-- ── Hero ────────────────────────────────────────── -->
-        <section class="hero section" id="home" aria-label="Hero">
-          <div class="hero-code-bg" id="heroCodeBg" aria-hidden="true">
-            <pre id="heroCodePre"></pre>
-          </div>
+    return row;
+  }
 
-          <div class="container hero-content reveal">
-            <div class="hero-eyebrow">
-              <span class="hero-index">001</span>
-              <span class="hero-tag">SYSTEM INTERFACE ONLINE</span>
-            </div>
+  async function loadRepos(){
+    try {
+      const res = await fetch('https://api.github.com/users/kaztral-ar/repos?sort=updated&per_page=12');
+      if(!res.ok) throw new Error('GitHub API ' + res.status);
+      const repos = await res.json();
 
-            <h1 class="hero-title" data-text="KAZTRAL">KAZTRAL</h1>
+      // Filter out forks, sort by updated
+      const own = repos.filter(r => !r.fork).sort((a,b) => new Date(b.updated_at) - new Date(a.updated_at));
 
-            <div class="hero-sub">
-              <p class="hero-descriptor">Developer &amp; automation builder</p>
-            </div>
+      list.innerHTML = '';
+      list.setAttribute('aria-busy','false');
 
-            <div class="hero-strip">
-              <div class="hero-strip-cell">
-                <span class="strip-label">ROLE</span>
-                <span class="strip-value">Web + Systems</span>
-              </div>
-              <div class="hero-strip-cell">
-                <span class="strip-label">STACK</span>
-                <span class="strip-value">JS · Bash · Linux</span>
-              </div>
-              <div class="hero-strip-cell">
-                <span class="strip-label">STATUS</span>
-                <span class="strip-value strip-value--online">● Available</span>
-              </div>
-              <div class="hero-strip-cell">
-                <span class="strip-label">PROJECTS</span>
-                <span class="strip-value">03 listed</span>
-              </div>
-            </div>
+      own.forEach(r => list.appendChild(buildRow(r)));
 
-            <div class="hero-actions">
-              <a href="#projects" class="btn btn-primary">View Projects</a>
-              <a href="contact.html" class="btn btn-ghost">Get in Touch</a>
-            </div>
+      // Update counters
+      const n = own.length;
+      countEl.textContent  = n + (n === 1 ? ' work' : ' works');
+      heroCount.textContent = n + ' listed';
 
-            <a href="#origin" class="scroll-indicator" aria-label="Scroll to About">
-              <span class="scroll-line"></span>
-            </a>
-          </div>
-        </section>
+      // Build stack from languages
+      const langs = {};
+      own.forEach(r => { if(r.language) langs[r.language] = (langs[r.language]||0)+1; });
+      const top = Object.entries(langs).sort((a,b)=>b[1]-a[1]).slice(0,4).map(e=>e[0]);
+      if(top.length) heroStack.textContent = top.join(' · ');
 
-        <!-- ── About ───────────────────────────────────────── -->
-        <section class="section section--ruled" id="origin" aria-label="About">
-          <div class="container reveal">
-            <div class="section-header">
-              <p class="kicker"><span class="kicker-num">002</span> About</p>
-              <h2>Terminal session:<br/>Kaztral</h2>
-            </div>
+    } catch(e){
+      console.error(e);
+      list.innerHTML = '';
+      errorEl.hidden = false;
+    }
+  }
 
-            <div class="about-grid">
-              <article class="terminal-window" id="aboutTerminal" aria-label="About profile terminal">
-                <div class="terminal-bar">
-                  <span class="dot dot-r"></span>
-                  <span class="dot dot-y"></span>
-                  <span class="dot dot-g"></span>
-                  <span class="terminal-title">profile.log</span>
-                  <span class="terminal-path">~/kaztral</span>
-                </div>
-                <div class="terminal-body">
-                  <p class="about-accent" data-type-line="* Loading Kaztral profile..."></p>
-                  <div class="about-lines" aria-live="polite">
-                    <p class="about-line" data-prefix="> " data-type-line="Hello, I am Kaztral."></p>
-                    <p class="about-line" data-prefix="> " data-type-line="Developer, web designer, and Bash tool builder."></p>
-                    <p class="about-line" data-prefix="> " data-type-line="I craft reliable web systems and automation workflows."></p>
-                    <p class="about-line" data-prefix="> " data-type-line="I value clean architecture, speed, and practical UX."></p>
-                  </div>
-                </div>
-              </article>
+  loadRepos();
+})();
 
-              <aside class="about-meta">
-                <div class="meta-cell">
-                  <span class="meta-label">HANDLE</span>
-                  <span class="meta-value">Kaztral</span>
-                </div>
-                <div class="meta-cell">
-                  <span class="meta-label">GITHUB</span>
-                  <span class="meta-value">/kaztral-ar</span>
-                </div>
-                <div class="meta-cell">
-                  <span class="meta-label">FOCUS</span>
-                  <span class="meta-value">Web · Automation · Security</span>
-                </div>
-                <div class="meta-cell">
-                  <span class="meta-label">ENVIRONMENT</span>
-                  <span class="meta-value">Linux · Terminal · Termux</span>
-                </div>
-                <div class="meta-cell">
-                  <span class="meta-label">STYLE</span>
-                  <span class="meta-value">Zero-dep · Minimal · Fast</span>
-                </div>
-              </aside>
-            </div>
-          </div>
-        </section>
-
-        <!-- ── Projects ────────────────────────────────────── -->
-        <section class="section section--ruled" id="projects" aria-label="Projects">
-          <div class="container reveal">
-            <div class="section-header section-header--row">
-              <div>
-                <p class="kicker"><span class="kicker-num">003</span> Projects</p>
-                <h2>Built for automation,<br/>speed &amp; utility.</h2>
-              </div>
-              <!-- Count is updated dynamically -->
-              <span class="section-count" id="projectCount">-- works</span>
-            </div>
-
-            <!-- Project list is populated by github-projects.js -->
-            <div class="project-list" id="projectList" role="list" aria-live="polite" aria-busy="true">
-              <!-- Skeleton loaders shown while fetching -->
-              <div class="proj-skeleton" aria-hidden="true"></div>
-              <div class="proj-skeleton" aria-hidden="true"></div>
-              <div class="proj-skeleton" aria-hidden="true"></div>
-            </div>
-
-            <!-- Error state (hidden by default) -->
-            <p class="proj-error" id="projectError" hidden>
-              Could not load projects from GitHub.
-              <a href="https://github.com/Kaztral-ar" target="_blank" rel="noopener">View on GitHub ↗</a>
-            </p>
-          </div>
-        </section>
-
-        <!-- ── Capabilities ─────────────────────────────────── -->
-        <section class="section section--ruled" id="capabilities" aria-label="Core Capabilities">
-          <div class="container reveal">
-            <div class="section-header">
-              <p class="kicker"><span class="kicker-num">004</span> Core Capabilities</p>
-              <h2>Technical range with<br/>execution discipline.</h2>
-            </div>
-
-            <div class="caps-layout">
-              <div class="caps-tabs" role="tablist" aria-label="Capabilities">
-                <button class="caps-tab is-active" role="tab" aria-selected="true" aria-controls="cap-0" data-cap="0">Web Systems</button>
-                <button class="caps-tab" role="tab" aria-selected="false" aria-controls="cap-1" data-cap="1">Automation</button>
-                <button class="caps-tab" role="tab" aria-selected="false" aria-controls="cap-2" data-cap="2">Security Tools</button>
-                <button class="caps-tab" role="tab" aria-selected="false" aria-controls="cap-3" data-cap="3">UI Engineering</button>
-              </div>
-
-              <div class="caps-panels">
-                <div class="caps-panel is-active" id="cap-0" role="tabpanel">
-                  <div class="cap-number">01</div>
-                  <div class="cap-body">
-                    <p class="cap-desc">Modern responsive interfaces built with clean architecture. Focus on performance, minimal UI, and scalable frontend systems that are fast and maintainable.</p>
-                    <div class="cap-stack">
-                      <span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">JavaScript</span><span class="tag">React</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="caps-panel" id="cap-1" role="tabpanel" hidden>
-                  <div class="cap-number">02</div>
-                  <div class="cap-body">
-                    <p class="cap-desc">CLI and Bash automation for workflow optimization. Task scheduling, IP rotation tools, and system scripting built for reliability under real conditions.</p>
-                    <div class="cap-stack">
-                      <span class="tag">Bash</span><span class="tag">Linux</span><span class="tag">Cron</span><span class="tag">Git</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="caps-panel" id="cap-2" role="tabpanel" hidden>
-                  <div class="cap-number">03</div>
-                  <div class="cap-body">
-                    <p class="cap-desc">Security-focused utilities and controlled testing scripts. Network awareness, automation, and system analysis designed for responsible use.</p>
-                    <div class="cap-stack">
-                      <span class="tag">Shell</span><span class="tag">Networking</span><span class="tag">Terminal</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="caps-panel" id="cap-3" role="tabpanel" hidden>
-                  <div class="cap-number">04</div>
-                  <div class="cap-body">
-                    <p class="cap-desc">Dark-mode systems with refined accents and clean structure. Smooth animations, premium interaction design with a focus on typographic precision.</p>
-                    <div class="cap-stack">
-                      <span class="tag">CSS</span><span class="tag">Animation</span><span class="tag">Typography</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-      </main>
-
-      <!-- ── Footer ─────────────────────────────────────────── -->
-      <footer class="footer">
-        <div class="container footer-grid">
-          <div class="footer-brand-col">
-            <p class="footer-brand">KZ//</p>
-            <p class="footer-tagline">Crafted in terminal mode.</p>
-          </div>
-          <div class="footer-links-col">
-            <p class="footer-col-label">Navigation</p>
-            <ul>
-              <li><a href="#home">Home</a></li>
-              <li><a href="#origin">About</a></li>
-              <li><a href="#projects">Projects</a></li>
-              <li><a href="#capabilities">Skills</a></li>
-            </ul>
-          </div>
-          <div class="footer-links-col">
-            <p class="footer-col-label">Connect</p>
-            <ul>
-              <li><a href="contact.html">Contact</a></li>
-              <li><a href="https://github.com/Kaztral-ar" target="_blank" rel="noopener">GitHub</a></li>
-              <li><a href="#" target="_blank" rel="noopener">Discord</a></li>
-              <li><a href="#" target="_blank" rel="noopener">Instagram</a></li>
-            </ul>
-          </div>
-          <div class="footer-copy-col">
-            <p>© <span id="year"></span> Kaztral</p>
-            <a href="#home" class="to-top" aria-label="Back to top">↑ Top</a>
-          </div>
-        </div>
-      </footer>
-
-    </div><!-- /page-content -->
-
-    <script src="assets/js/github-projects.js"></script>
-    <script src="assets/js/main.js"></script>
-  </body>
+/* ── Footer year ── */
+document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
 </html>
