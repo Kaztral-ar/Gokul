@@ -72,11 +72,45 @@
       background: var(--bg);
       display: flex; align-items: center; justify-content: center;
       z-index: 10000;
-      transition: opacity .4s ease;
+      transition: opacity .5s ease;
     }
     .loader-overlay.hidden { opacity: 0; pointer-events: none; }
 
-    .loader-inner { width: min(420px, 90vw); }
+    /* ── The box ── */
+    .loader-inner {
+      width: min(480px, 92vw);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-mid);
+      box-shadow:
+        0 0 0 1px var(--bg),
+        0 0 32px rgba(57,255,107,.06),
+        0 8px 40px rgba(0,0,0,.6);
+    }
+
+    /* Title bar mimicking terminal chrome */
+    .loader-titlebar {
+      display: flex; align-items: center; gap: .5rem;
+      padding: .55rem .85rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+    .loader-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .loader-dot:nth-child(1) { background: #ff5f56; }
+    .loader-dot:nth-child(2) { background: #ffbd2e; }
+    .loader-dot:nth-child(3) { background: var(--green); }
+    .loader-titlebar-label {
+      margin-left: .4rem;
+      font-size: .58rem; letter-spacing: .1em; color: var(--fg-dim);
+      text-transform: uppercase;
+    }
+    .loader-titlebar-status {
+      margin-left: auto;
+      font-size: .58rem; letter-spacing: .1em; color: var(--fg-dim);
+      text-transform: uppercase;
+    }
+
+    /* Body */
+    .loader-body { padding: 1.1rem 1.1rem 1.2rem; }
 
     .loader-header {
       display: flex; justify-content: space-between; align-items: baseline;
@@ -91,15 +125,15 @@
     }
     .loader-bar {
       height: 100%; width: 0; background: var(--green);
-      transition: width .08s linear;
-      box-shadow: 0 0 8px var(--green);
+      transition: width .12s linear;
+      box-shadow: 0 0 10px var(--green);
     }
 
-    .loader-lines { display: flex; flex-direction: column; gap: .3rem; min-height: 7rem; }
+    .loader-lines { display: flex; flex-direction: column; gap: .35rem; min-height: 7.5rem; }
     .lline {
       font-size: .72rem; color: var(--fg-dim);
       overflow: hidden; white-space: nowrap;
-      opacity: 0; transition: opacity .2s ease;
+      opacity: 0; transition: opacity .3s ease;
     }
     .lline.visible { opacity: 1; }
     .lline[data-style="top"]  { color: var(--fg); }
@@ -109,6 +143,8 @@
     .loader-pct {
       margin-top: 1rem; text-align: right;
       font-size: .68rem; color: var(--fg-dim); letter-spacing: .1em;
+      border-top: 1px solid var(--border);
+      padding-top: .7rem;
     }
 
     /* ═══════════════════════════════════════════
@@ -590,22 +626,32 @@
 <!-- ── Loader ───────────────────────────── -->
 <div class="loader-overlay" id="loaderOverlay" role="status" aria-live="polite">
   <div class="loader-inner">
-    <div class="loader-header">
-      <span class="loader-brand">KZ//</span>
-      <span class="loader-status" id="loaderStatus">INIT</span>
+    <!-- Terminal title bar -->
+    <div class="loader-titlebar">
+      <span class="loader-dot"></span>
+      <span class="loader-dot"></span>
+      <span class="loader-dot"></span>
+      <span class="loader-titlebar-label">boot.sh — kaztral㉿portfolio</span>
+      <span class="loader-titlebar-status" id="loaderStatus">INIT</span>
     </div>
-    <div class="loader-bar-wrap">
-      <div class="loader-bar" id="loaderBar"></div>
+    <!-- Terminal body -->
+    <div class="loader-body">
+      <div class="loader-header">
+        <span class="loader-brand">KZ//</span>
+      </div>
+      <div class="loader-bar-wrap">
+        <div class="loader-bar" id="loaderBar"></div>
+      </div>
+      <div class="loader-lines" id="loaderLines">
+        <p class="lline" data-style="top">┌──(kaztral㉿portfolio)-[~]</p>
+        <p class="lline" data-style="boot">└─$ boot --init</p>
+        <p class="lline">checking system status...</p>
+        <p class="lline">establishing secure session...</p>
+        <p class="lline">loading modules...</p>
+        <p class="lline lline--ok">STATUS: ONLINE</p>
+      </div>
+      <div class="loader-pct" id="loaderPct">0%</div>
     </div>
-    <div class="loader-lines" id="loaderLines">
-      <p class="lline" data-style="top">┌──(kaztral㉿portfolio)-[~]</p>
-      <p class="lline" data-style="boot">└─$ boot --init</p>
-      <p class="lline">checking system status...</p>
-      <p class="lline">establishing secure session...</p>
-      <p class="lline">loading modules...</p>
-      <p class="lline lline--ok">STATUS: ONLINE</p>
-    </div>
-    <div class="loader-pct" id="loaderPct">0%</div>
   </div>
 </div>
 
@@ -914,7 +960,8 @@
   let progress = 0;
 
   const interval = setInterval(() => {
-    progress = Math.min(progress + Math.random() * 14 + 4, 100);
+    // slower: smaller random step, longer interval (was 14+4 @ 90ms)
+    progress = Math.min(progress + Math.random() * 4 + 1.2, 100);
     bar.style.width = progress + '%';
     pct.textContent = Math.round(progress) + '%';
     status.textContent = statuses[Math.min(Math.floor(progress / 22), statuses.length - 1)];
@@ -930,10 +977,10 @@
       setTimeout(() => {
         overlay.classList.add('hidden');
         page.style.visibility = '';
-        setTimeout(() => overlay.remove(), 450);
-      }, 320);
+        setTimeout(() => overlay.remove(), 550);
+      }, 500);
     }
-  }, 90);
+  }, 160); // was 90ms — now 160ms per tick
 })();
 
 /* ═══════════════════════════════════════════════════
