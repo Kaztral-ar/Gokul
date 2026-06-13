@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>SNEECH — All-in-One Pentesting Framework</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════════════════════
+   TOKENS
+════════════════════════════════════════════════════════ */
+:root {
+  --black:  #000;
+  --green:  #00ff41;
+  --cyan:   #00d4ff;
+  --dim:    #1a1a1a;
+  --mid:    #0a0a0a;
+  --muted:  #3a3a3a;
+  --text:   #c8c8c8;
+  --accent: #ff3c3c;
+
+  --pad-x:  clamp(1.25rem, 6vw, 7rem);
+  --pad-y:  clamp(3rem, 7vw, 6rem);
+  --nav-h:  56px;
+}
+
+/* ════════════════════════════════════════════════════════
+   RESET
+════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: var(--nav-h); }
+img, video { max-width: 100%; display: block; }
+
+body {
+  background: var(--black);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  overflow-x: hidden;
+  /* crosshair cursor feels wrong on touch, only apply on pointer devices */
+}
+@media (pointer: fine) { body { cursor: crosshair; } }
+
+/* ── scanlines ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,        transparent 2px,
+    rgba(0,255,65,.015) 2px,
+    rgba(0,255,65,.015) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── noise grain (skip on slow mobile) ── */
+@media (prefers-reduced-motion: no-preference) and (min-width: 640px) {
+  body::after {
+    content: '';
+    position: fixed; inset: -200%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: .06; pointer-events: none; z-index: 9998;
+    animation: grain .5s steps(1) infinite;
+  }
+  @keyframes grain {
+    0%,100%{transform:translate(0,0)}   10%{transform:translate(-2%,-3%)}
+    20%{transform:translate(3%,2%)}     30%{transform:translate(-1%,4%)}
+    40%{transform:translate(4%,-1%)}    50%{transform:translate(-3%,3%)}
+    60%{transform:translate(2%,-4%)}    70%{transform:translate(-4%,1%)}
+    80%{transform:translate(1%,3%)}     90%{transform:translate(3%,-2%)}
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   NAV
+════════════════════════════════════════════════════════ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--nav-h);
+  background: rgba(0,0,0,.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--muted);
+  display: flex; align-items: center;
+  padding: 0 var(--pad-x);
+  z-index: 1000;
+  gap: 1.5rem;
+}
+
+.nav-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  color: var(--green);
+  letter-spacing: .1em;
+  text-shadow: 0 0 12px rgba(0,255,65,.4);
+  flex-shrink: 0;
+}
+
+.nav-links {
+  display: flex; gap: 1.5rem;
+  list-style: none;
+  margin-left: auto;
+}
+
+.nav-links a {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .7rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--text);
+  text-decoration: none;
+  opacity: .6;
+  transition: opacity .2s, color .2s;
+  padding: .25rem 0;            /* tap area */
+  white-space: nowrap;
+}
+.nav-links a:hover { opacity: 1; color: var(--green); }
+
+/* hamburger */
+.nav-toggle {
+  display: none;
+  margin-left: auto;
+  background: none; border: none;
+  cursor: pointer;
+  padding: .5rem;
+  flex-direction: column; gap: 5px;
+  align-items: flex-end;
+}
+.nav-toggle span {
+  display: block;
+  height: 1px;
+  background: var(--green);
+  transition: all .25s;
+}
+.nav-toggle span:nth-child(1) { width: 22px; }
+.nav-toggle span:nth-child(2) { width: 16px; }
+.nav-toggle span:nth-child(3) { width: 22px; }
+
+.nav-toggle.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); width: 22px; }
+.nav-toggle.open span:nth-child(2) { opacity: 0; }
+.nav-toggle.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); width: 22px; }
+
+/* mobile drawer */
+.nav-drawer {
+  display: none;
+  position: fixed;
+  top: var(--nav-h); left: 0; right: 0;
+  background: rgba(0,0,0,.97);
+  border-bottom: 1px solid var(--muted);
+  padding: 1.5rem var(--pad-x);
+  z-index: 999;
+  flex-direction: column; gap: 1.25rem;
+  list-style: none;
+}
+.nav-drawer.open { display: flex; }
+.nav-drawer a {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .85rem; letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--text);
+  text-decoration: none;
+  padding: .5rem 0;
+  border-bottom: 1px solid var(--muted);
+  display: block;
+}
+.nav-drawer a:hover { color: var(--green); }
+
+@media (max-width: 767px) {
+  .nav-links { display: none; }
+  .nav-toggle { display: flex; }
+}
+
+/* ════════════════════════════════════════════════════════
+   HERO
+════════════════════════════════════════════════════════ */
+.hero {
+  min-height: 100svh;               /* svh = small viewport on mobile */
+  padding-top: calc(var(--nav-h) + clamp(2.5rem, 6vw, 5rem));
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+  padding-left: var(--pad-x);
+  padding-right: var(--pad-x);
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: flex-start;
+  position: relative;
+  border-bottom: 1px solid var(--muted);
+  overflow: hidden;
+}
+
+.hero-bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,255,65,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,65,.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridpulse 6s ease-in-out infinite;
+}
+@keyframes gridpulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+
+.hero-corner {
+  position: absolute;
+  top: calc(var(--nav-h) + 1.25rem); right: 1.25rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .6rem; letter-spacing: .15em;
+  text-transform: uppercase; color: var(--muted);
+  filter: brightness(2);
+  z-index: 1;
+}
+.hero-corner span { color: var(--green); animation: blink 1.2s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ── ASCII logo ── */
+.ascii-wrap {
+  position: relative; z-index: 1;
+  width: 100%; overflow: hidden;
+}
+.ascii-logo {
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--green);
+  line-height: 1.2;
+  white-space: pre;
+  text-shadow: 0 0 20px rgba(0,255,65,.45);
+  animation: fadeup .8s ease both;
+  /* scale font so the 40-char logo always fits the container */
+  font-size: clamp(.42rem, 2.2vw, .9rem);
+}
+
+/* On small phones hide ASCII, show big text logo instead */
+.ascii-fallback {
+  display: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 18vw, 6rem);
+  color: var(--green);
+  letter-spacing: .05em;
+  text-shadow: 0 0 30px rgba(0,255,65,.4);
+  animation: fadeup .8s ease both;
+  position: relative; z-index: 1;
+  line-height: 1;
+}
+@media (max-width: 400px) {
+  .ascii-logo { display: none; }
+  .ascii-fallback { display: block; }
+}
+
+.v-badge {
+  display: inline-block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .62rem; letter-spacing: .15em;
+  padding: .25rem .75rem;
+  border: 1px solid var(--accent); color: var(--accent);
+  margin-bottom: 1.25rem;
+  animation: fadeup .8s ease both;
+  position: relative; z-index: 1;
+}
+
+.hero-tagline {
+  margin-top: 1.5rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(.65rem, 2vw, 1rem);
+  color: var(--cyan); letter-spacing: .25em;
+  text-transform: uppercase;
+  animation: fadeup .8s .2s ease both;
+  position: relative; z-index: 1;
+}
+
+.hero-desc {
+  margin-top: 1.25rem;
+  max-width: 56ch;
+  font-size: clamp(.78rem, 1.8vw, .95rem);
+  line-height: 1.85;
+  animation: fadeup .8s .4s ease both;
+  position: relative; z-index: 1;
+}
+
+.hero-cta {
+  margin-top: 2rem;
+  display: flex; gap: .875rem;
+  flex-wrap: wrap;
+  animation: fadeup .8s .6s ease both;
+  position: relative; z-index: 1;
+  width: 100%;
+}
+
+.btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .78rem; letter-spacing: .15em;
+  text-transform: uppercase; text-decoration: none;
+  padding: .85rem 1.75rem;
+  border: 1px solid var(--green);
+  color: var(--green); background: transparent;
+  cursor: pointer;
+  transition: color .2s; position: relative; overflow: hidden;
+  min-height: 48px;         /* touch target */
+  display: inline-flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--green);
+  transform: translateX(-101%); transition: transform .2s; z-index: -1;
+}
+.btn:hover { color: var(--black); }
+.btn:hover::before { transform: translateX(0); }
+
+.btn-ghost { border-color: var(--muted); color: var(--text); }
+.btn-ghost::before { background: var(--muted); }
+.btn-ghost:hover { color: var(--black); }
+
+/* full-width on narrow phones */
+@media (max-width: 420px) {
+  .btn { width: 100%; }
+}
+
+/* ════════════════════════════════════════════════════════
+   STATS BAR
+════════════════════════════════════════════════════════ */
+.stats {
+  background: var(--mid);
+  border-top: 1px solid var(--muted);
+  border-bottom: 1px solid var(--muted);
+}
+.stats-inner {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.stat {
+  padding: 1.75rem var(--pad-x);
+  border-right: 1px solid var(--muted);
+  opacity: 0;
+  animation: fadeup .6s ease forwards;
+}
+.stat:last-child { border-right: none; }
+.stat:nth-child(1){animation-delay:.1s}
+.stat:nth-child(2){animation-delay:.2s}
+.stat:nth-child(3){animation-delay:.3s}
+.stat:nth-child(4){animation-delay:.4s}
+
+.stat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  color: var(--green); line-height: 1;
+  text-shadow: 0 0 24px rgba(0,255,65,.3);
+}
+.stat-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .6rem; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--muted);
+  filter: brightness(2); margin-top: .35rem;
+}
+
+/* tablet: 2×2 */
+@media (max-width: 767px) {
+  .stats-inner { grid-template-columns: repeat(2, 1fr); }
+  .stat:nth-child(2) { border-right: none; }
+  .stat:nth-child(3) { border-top: 1px solid var(--muted); }
+  .stat:nth-child(4) { border-top: 1px solid var(--muted); border-right: none; }
+}
+/* phone: 1 row per stat */
+@media (max-width: 380px) {
+  .stats-inner { grid-template-columns: 1fr; }
+  .stat { border-right: none; border-bottom: 1px solid var(--muted); }
+  .stat:last-child { border-bottom: none; }
+}
+
+/* ════════════════════════════════════════════════════════
+   SECTIONS
+════════════════════════════════════════════════════════ */
+section {
+  padding: var(--pad-y) var(--pad-x);
+  border-bottom: 1px solid var(--muted);
+}
+
+.section-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .62rem; letter-spacing: .25em;
+  text-transform: uppercase; color: var(--green);
+  margin-bottom: .875rem;
+}
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.25rem, 7vw, 5rem);
+  letter-spacing: .04em; color: #fff;
+  line-height: .95; margin-bottom: 2rem;
+}
+
+/* ════════════════════════════════════════════════════════
+   ABOUT
+════════════════════════════════════════════════════════ */
+.about-body {
+  max-width: 62ch;
+  font-size: clamp(.78rem, 1.8vw, .92rem);
+  line-height: 1.9; opacity: .85;
+}
+
+.disclaimer {
+  background: rgba(255,60,60,.04);
+  border: 1px solid rgba(255,60,60,.22);
+  padding: 1rem 1.25rem;
+  margin-top: 2rem;
+  max-width: 640px;
+  display: flex; gap: .875rem; align-items: flex-start;
+}
+.disclaimer-icon {
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--accent); font-size: .7rem;
+  white-space: nowrap; margin-top: .1rem;
+}
+.disclaimer-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .7rem; line-height: 1.75; opacity: .7;
+}
+
+/* ════════════════════════════════════════════════════════
+   CATEGORIES
+════════════════════════════════════════════════════════ */
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 1px;
+  background: var(--muted);
+  border: 1px solid var(--muted);
+  margin-top: 1.75rem;
+}
+.cat-card {
+  background: var(--black);
+  padding: 1.75rem 1.5rem;
+  transition: background .2s;
+  position: relative; overflow: hidden;
+}
+.cat-card::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px; background: var(--green);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .3s ease;
+}
+.cat-card:hover { background: var(--dim); }
+.cat-card:hover::after { transform: scaleX(1); }
+
+.cat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  color: var(--muted); line-height: 1;
+  filter: brightness(2); transition: color .2s;
+}
+.cat-card:hover .cat-num { color: var(--green); }
+
+.cat-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .78rem; letter-spacing: .08em;
+  color: #fff; margin-top: .65rem;
+  text-transform: uppercase;
+}
+.cat-desc {
+  font-size: .73rem; line-height: 1.65;
+  margin-top: .45rem; opacity: .65;
+}
+.cat-tools {
+  margin-top: .875rem;
+  display: flex; flex-wrap: wrap; gap: .35rem;
+}
+.tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .58rem; padding: .2rem .5rem;
+  border: 1px solid var(--muted); color: var(--muted);
+  letter-spacing: .04em; filter: brightness(2);
+  transition: all .2s;
+}
+.cat-card:hover .tag {
+  border-color: rgba(0,255,65,.3);
+  color: rgba(0,255,65,.65);
+}
+
+/* ════════════════════════════════════════════════════════
+   FEATURES
+════════════════════════════════════════════════════════ */
+.features-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  gap: 2rem; margin-top: 1.75rem;
+}
+.feature {
+  border-left: 2px solid var(--green);
+  padding-left: 1.25rem;
+  opacity: 0;
+  animation: fadein .5s ease forwards;
+}
+.feature:nth-child(1){animation-delay:.1s}
+.feature:nth-child(2){animation-delay:.2s}
+.feature:nth-child(3){animation-delay:.3s}
+.feature:nth-child(4){animation-delay:.4s}
+
+.feature-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .73rem; color: var(--green);
+  letter-spacing: .1em; text-transform: uppercase;
+  margin-bottom: .55rem;
+}
+.feature-body { font-size: .8rem; line-height: 1.8; opacity: .82; }
+.feature-body code {
+  color: var(--green);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .78em;
+}
+
+/* ════════════════════════════════════════════════════════
+   TERMINAL
+════════════════════════════════════════════════════════ */
+.terminal-section { background: var(--mid); }
+
+.terminal-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1.75rem;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .terminal-wrap { grid-template-columns: 1fr; }
+}
+
+.terminal {
+  background: #070707;
+  border: 1px solid var(--muted);
+  border-radius: 3px;
+  overflow: hidden;
+  width: 100%;
+}
+.terminal-bar {
+  background: var(--dim);
+  padding: .55rem 1rem;
+  display: flex; align-items: center; gap: .45rem;
+  border-bottom: 1px solid var(--muted);
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-r{background:#ff5f57} .dot-y{background:#febc2e} .dot-g{background:#28c840}
+.terminal-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .62rem; color: var(--muted);
+  filter: brightness(2); margin-left: .4rem;
+}
+.terminal-body {
+  padding: 1.25rem 1.25rem 1.5rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(.65rem, 1.6vw, .78rem);
+  line-height: 2;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  /* keep lines from wrapping so terminal looks authentic */
+  white-space: nowrap;
+}
+.terminal-body > div { white-space: nowrap; }
+.t-prompt{color:var(--green)}
+.t-cmd{color:#fff}
+.t-out{color:var(--text);opacity:.65}
+.t-cyan{color:var(--cyan)}
+.t-dim{color:var(--muted);filter:brightness(2)}
+.t-acc{color:var(--accent)}
+
+.terminal-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .62rem; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--green);
+  margin-bottom: .75rem;
+}
+
+/* ════════════════════════════════════════════════════════
+   STACK
+════════════════════════════════════════════════════════ */
+.stack-row {
+  display: flex; flex-wrap: wrap;
+  gap: .75rem; margin-top: 1.75rem;
+}
+.stack-item {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .73rem; padding: .65rem 1.2rem;
+  border: 1px solid var(--muted); color: var(--text);
+  letter-spacing: .08em; transition: all .2s;
+  min-height: 44px;         /* touch target */
+  display: inline-flex; align-items: center;
+}
+.stack-item:hover {
+  border-color: var(--cyan); color: var(--cyan);
+  box-shadow: 0 0 12px rgba(0,212,255,.15);
+}
+
+/* ════════════════════════════════════════════════════════
+   FOOTER
+════════════════════════════════════════════════════════ */
+footer {
+  padding: 2.5rem var(--pad-x);
+  display: flex; justify-content: space-between;
+  align-items: center; flex-wrap: wrap; gap: 1rem;
+}
+.footer-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem; color: var(--green);
+  letter-spacing: .1em;
+  text-shadow: 0 0 14px rgba(0,255,65,.3);
+}
+.footer-note {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .62rem; color: var(--muted);
+  filter: brightness(2); letter-spacing: .08em;
+}
+.footer-link {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: .68rem; color: var(--green);
+  text-decoration: none; letter-spacing: .1em;
+  opacity: .7; transition: opacity .2s;
+  min-height: 44px; display: inline-flex; align-items: center;
+}
+.footer-link:hover { opacity: 1; }
+
+@media (max-width: 480px) {
+  footer { flex-direction: column; align-items: flex-start; }
+}
+
+/* ════════════════════════════════════════════════════════
+   UTILS
+════════════════════════════════════════════════════════ */
+@keyframes fadeup {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════ NAV ════════════ -->
+<nav class="nav">
+  <a class="nav-logo" href="../index.html" style="text-decoration:none;color:inherit;">SNEECH</a>
+  <ul class="nav-links">
+    <li><a href="#about">Overview</a></li>
+    <li><a href="#categories">Tools</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#quickstart">Quick Start</a></li>
+    <li><a href="https://github.com/Kaztral-ar/sneech" target="_blank" rel="noopener">GitHub →</a></li>
+  </ul>
+  <button class="nav-toggle" aria-label="Menu" aria-expanded="false" onclick="toggleNav(this)">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<ul class="nav-drawer" id="navDrawer">
+  <li><a href="#about"      onclick="closeNav()">Overview</a></li>
+  <li><a href="#categories" onclick="closeNav()">Tools</a></li>
+  <li><a href="#features"   onclick="closeNav()">Features</a></li>
+  <li><a href="#quickstart" onclick="closeNav()">Quick Start</a></li>
+  <li><a href="https://github.com/Kaztral-ar/sneech" target="_blank" rel="noopener">GitHub →</a></li>
+</ul>
+
+<!-- ════════════ HERO ════════════ -->
+<section class="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-corner">STATUS: ACTIVE <span>█</span></div>
+
+  <div class="v-badge">// VERSION 2.2 — STABLE</div>
+
+  <!-- ASCII shown on ≥400px, big text logo on tiny phones -->
+  <div class="ascii-wrap">
+    <pre class="ascii-logo"> ____  _   _ _____  _____ ____ _   _
+/ ___|| \ | | ____|| ____/ ___| | | |
+\___ \|  \| |  _|  |  _|| |   | |_| |
+ ___) | |\  | |___ | |__| |___|  _  |
+|____/|_| \_|_____|_____\___|_| |_|  </pre>
+    <div class="ascii-fallback">SNEECH</div>
+  </div>
+
+  <p class="hero-tagline">All-in-One Pentesting Framework</p>
+
+  <p class="hero-desc">
+    A terminal-based security toolkit giving ethical hackers and cybersecurity
+    students a single interactive menu to discover, install, and launch
+    45+ industry-standard offensive security tools.
+  </p>
+
+  <div class="hero-cta">
+    <a class="btn" href="https://github.com/Kaztral-ar/sneech" target="_blank" rel="noopener">
+      git clone sneech
+    </a>
+    <a class="btn btn-ghost" href="#categories">explore tools</a>
+  </div>
+</section>
+
+<!-- ════════════ STATS ════════════ -->
+<div class="stats">
+  <div class="stats-inner">
+    <div class="stat">
+      <div class="stat-num">45+</div>
+      <div class="stat-label">Security Tools</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">7</div>
+      <div class="stat-label">Categories</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">3.6+</div>
+      <div class="stat-label">Python Required</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">2</div>
+      <div class="stat-label">Platforms</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ ABOUT ════════════ -->
+<section id="about">
+  <div class="section-label">// 00 — Overview</div>
+  <h2 class="section-title">What Is<br>SNEECH?</h2>
+  <p class="about-body">
+    SNEECH is an open-source, terminal-based security framework built in pure Python 3.
+    It eliminates the need to remember individual tool commands or installation steps —
+    instead wrapping the entire pentesting workflow into a single, navigable CLI interface.
+    Tools are pulled on-demand via <code style="color:var(--green);font-family:'Share Tech Mono',monospace">git clone</code>
+    or the system package manager, keeping the core lean with zero runtime dependencies.
+  </p>
+  <div class="disclaimer">
+    <div class="disclaimer-icon">[!]&nbsp;LEGAL</div>
+    <div class="disclaimer-text">
+      SNEECH is intended for legal penetration testing and educational purposes only.
+      Always obtain written authorisation before testing any system you do not own.
+      The author is not responsible for any misuse.
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ CATEGORIES ════════════ -->
+<section id="categories">
+  <div class="section-label">// 01 — Tool Matrix</div>
+  <h2 class="section-title">Seven<br>Domains</h2>
+
+  <div class="categories-grid">
+    <div class="cat-card">
+      <div class="cat-num">01</div>
+      <div class="cat-name">Information Gathering</div>
+      <div class="cat-desc">Reconnaissance, DNS enumeration, OSINT, and port scanning to map the attack surface.</div>
+      <div class="cat-tools">
+        <span class="tag">Nmap</span><span class="tag">Masscan</span>
+        <span class="tag">Sublist3r</span><span class="tag">theHarvester</span>
+        <span class="tag">Shodan</span><span class="tag">Whois</span>
+        <span class="tag">DNSenum</span><span class="tag">CMSmap</span>
+      </div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-num">02</div>
+      <div class="cat-name">Password Attacks</div>
+      <div class="cat-desc">Hash cracking, network authentication brute-forcing, and custom wordlist generation.</div>
+      <div class="cat-tools">
+        <span class="tag">Hydra</span><span class="tag">Hashcat</span>
+        <span class="tag">John</span><span class="tag">Ncrack</span>
+        <span class="tag">CUPP</span><span class="tag">Crunch</span>
+      </div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-num">03</div>
+      <div class="cat-name">Wireless Testing</div>
+      <div class="cat-desc">WPA/WPA2 cracking, WPS PIN attacks, evil-twin access point generation.</div>
+      <div class="cat-tools">
+        <span class="tag">Aircrack-ng</span><span class="tag">Reaver</span>
+        <span class="tag">Fluxion</span><span class="tag">Wifite2</span>
+        <span class="tag">Pixiewps</span>
+      </div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-num">04</div>
+      <div class="cat-name">Exploitation</div>
+      <div class="cat-desc">Automated injection attacks, shellcode tooling, browser exploitation, and framework access.</div>
+      <div class="cat-tools">
+        <span class="tag">SQLmap</span><span class="tag">Metasploit</span>
+        <span class="tag">Commix</span><span class="tag">BeEF</span>
+        <span class="tag">ShellNoob</span><span class="tag">ATScan</span>
+      </div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-num">05</div>
+      <div class="cat-name">Sniffing &amp; Spoofing</div>
+      <div class="cat-desc">Man-in-the-middle attacks, SSL stripping, packet capture, and ARP cache poisoning.</div>
+      <div class="cat-tools">
+        <span class="tag">Bettercap</span><span class="tag">Wireshark</span>
+        <span class="tag">Ettercap</span><span class="tag">SSLstrip</span>
+        <span class="tag">tcpdump</span><span class="tag">arpspoof</span>
+      </div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-num">06</div>
+      <div class="cat-name">Web Hacking</div>
+      <div class="cat-desc">Directory busting, CMS scanning, XSS frameworks, and web technology fingerprinting.</div>
+      <div class="cat-tools">
+        <span class="tag">Gobuster</span><span class="tag">Feroxbuster</span>
+        <span class="tag">Nikto</span><span class="tag">WPScan</span>
+        <span class="tag">WhatWeb</span><span class="tag">Burp Suite</span>
+        <span class="tag">Dirsearch</span>
+      </div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-num">07</div>
+      <div class="cat-name">Post Exploitation</div>
+      <div class="cat-desc">Privilege escalation, persistence mechanisms, payload generation, and credential extraction.</div>
+      <div class="cat-tools">
+        <span class="tag">Mimikatz</span><span class="tag">msfvenom</span>
+        <span class="tag">Empire</span><span class="tag">LinEnum</span>
+        <span class="tag">pspy</span><span class="tag">POET</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ FEATURES ════════════ -->
+<section id="features" style="background:var(--mid)">
+  <div class="section-label">// 02 — Core Features</div>
+  <h2 class="section-title">Built For<br>Operators</h2>
+  <div class="features-list">
+    <div class="feature">
+      <div class="feature-title">Auto-Update Engine</div>
+      <div class="feature-body">
+        Checks GitHub on every launch. The ★ banner appears when a new version exists.
+        Press [0] to pull changes — SNEECH diffs new tool functions, menu entries,
+        and removed tools, then offers an automatic restart.
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-title">Cross-Platform</div>
+      <div class="feature-body">
+        Runs natively on Linux and Termux (Android). An <code>IS_TERMUX</code> flag
+        switches between <code>sudo apt-get</code> and <code>pkg install</code> — no manual config needed.
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-title">Shell-Safe Inputs</div>
+      <div class="feature-body">
+        All user-supplied values (targets, IPs, file paths, API keys) are
+        sanitized via Python's <code>shlex.quote()</code>
+        before execution — 39 call sites protected.
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-title">Zero Runtime Deps</div>
+      <div class="feature-body">
+        Core runs on Python 3.6+ stdlib only. Individual tools are pulled
+        on-demand via <code>git clone</code> or the system package manager
+        — nothing pre-installed, nothing wasted.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ QUICK START ════════════ -->
+<section id="quickstart" class="terminal-section">
+  <div class="section-label">// 03 — Quick Start</div>
+  <h2 class="section-title">Get<br>Running</h2>
+
+  <div class="terminal-wrap">
+
+    <!-- Linux terminal -->
+    <div>
+      <div class="terminal-label">Linux / Kali</div>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot dot-r"></span>
+          <span class="dot dot-y"></span>
+          <span class="dot dot-g"></span>
+          <span class="terminal-title">bash — kali</span>
+        </div>
+        <div class="terminal-body">
+<div><span class="t-prompt">user@kali:~$</span> <span class="t-cmd">git clone https://github.com/Kaztral-ar/sneech.git</span></div>
+<div><span class="t-out">Cloning into 'sneech'...</span></div>
+<div><span class="t-out">remote: Enumerating objects: done.</span></div>
+<div>&nbsp;</div>
+<div><span class="t-prompt">user@kali:~$</span> <span class="t-cmd">cd sneech &amp;&amp; sudo ./install.sh</span></div>
+<div><span class="t-out">[+] Checking Python 3... OK (3.11.2)</span></div>
+<div><span class="t-out">[+] Checking Git... OK</span></div>
+<div><span class="t-out">[+] Copying files to /opt/sneech...</span></div>
+<div><span class="t-acc">[OK] Installation complete!</span></div>
+<div>&nbsp;</div>
+<div><span class="t-prompt">user@kali:~$</span> <span class="t-cmd">sneech</span></div>
+<div><span class="t-cyan">[*] Checking for updates...</span></div>
+<div><span class="t-dim">  ── Main Menu ─────────────────</span></div>
+<div><span class="t-cmd">  [1]</span> <span class="t-out">Information Gathering</span></div>
+<div><span class="t-cmd">  [2]</span> <span class="t-out">Password Attacks</span></div>
+<div><span class="t-cmd">  [7]</span> <span class="t-out">Post Exploitation</span></div>
+<div><span class="t-prompt">  sneech~#</span> <span class="t-cmd">█</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Termux terminal -->
+    <div>
+      <div class="terminal-label">Termux (Android)</div>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot dot-r"></span>
+          <span class="dot dot-y"></span>
+          <span class="dot dot-g"></span>
+          <span class="terminal-title">termux — android</span>
+        </div>
+        <div class="terminal-body">
+<div><span class="t-prompt">$</span> <span class="t-cmd">pkg install git python</span></div>
+<div><span class="t-out">Resolving dependencies... done.</span></div>
+<div>&nbsp;</div>
+<div><span class="t-prompt">$</span> <span class="t-cmd">git clone https://github.com/Kaztral-ar/sneech.git</span></div>
+<div><span class="t-out">Cloning into 'sneech'...</span></div>
+<div>&nbsp;</div>
+<div><span class="t-prompt">$</span> <span class="t-cmd">cd sneech &amp;&amp; ./install.sh</span></div>
+<div><span class="t-out">[+] Checking Python 3... OK</span></div>
+<div><span class="t-out">[+] Checking Git... OK</span></div>
+<div><span class="t-acc">[OK] Installation complete!</span></div>
+<div>&nbsp;</div>
+<div><span class="t-prompt">$</span> <span class="t-cmd">sneech</span></div>
+<div><span class="t-cyan">[*] No sudo needed on Termux.</span></div>
+<div><span class="t-dim">  ── Main Menu ─────────────────</span></div>
+<div><span class="t-prompt">  sneech~#</span> <span class="t-cmd">█</span></div>
+        </div>
+      </div>
+
+      <!-- Without installing -->
+      <div class="terminal-label" style="margin-top:1.5rem">Without Installing</div>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="dot dot-r"></span>
+          <span class="dot dot-y"></span>
+          <span class="dot dot-g"></span>
+          <span class="terminal-title">any platform</span>
+        </div>
+        <div class="terminal-body">
+<div><span class="t-prompt">$</span> <span class="t-cmd">python3 sneech.py</span></div>
+<div><span class="t-out">Requires Python 3.6+ and Git.</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════ STACK ════════════ -->
+<section>
+  <div class="section-label">// 04 — Stack</div>
+  <h2 class="section-title">Built With</h2>
+  <div class="stack-row">
+    <div class="stack-item">Python 3.6+</div>
+    <div class="stack-item">Bash</div>
+    <div class="stack-item">Git</div>
+    <div class="stack-item">shlex / subprocess</div>
+    <div class="stack-item">Linux</div>
+    <div class="stack-item">Termux (Android)</div>
+  </div>
+</section>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer>
+  <div class="footer-logo">SNEECH</div>
+  <div class="footer-note">© 2025 SNEECH PROJECT — MIT LICENSE</div>
+  <a class="footer-link" href="https://github.com/Kaztral-ar/sneech" target="_blank" rel="noopener">
+    → github.com/Kaztral-ar/sneech
+  </a>
+</footer>
+
+<script>
+function toggleNav(btn) {
+  const drawer = document.getElementById('navDrawer');
+  const isOpen = drawer.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  btn.setAttribute('aria-expanded', isOpen);
+}
+function closeNav() {
+  document.getElementById('navDrawer').classList.remove('open');
+  document.querySelector('.nav-toggle').classList.remove('open');
+}
+// Close drawer on outside click
+document.addEventListener('click', e => {
+  const drawer = document.getElementById('navDrawer');
+  const toggle = document.querySelector('.nav-toggle');
+  if (drawer.classList.contains('open') &&
+      !drawer.contains(e.target) &&
+      !toggle.contains(e.target)) {
+    closeNav();
+  }
+});
+</script>
+</body>
+</html>
