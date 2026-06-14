@@ -592,31 +592,92 @@
     /* ═══════════════════════════════════════════
        RESPONSIVE
     ═══════════════════════════════════════════ */
-    @media (max-width: 680px) {
-      .nav-menu  { display: none; }
-      .nav-toggle { display: flex; }
 
-      .about-grid { grid-template-columns: 1fr; }
-      .about-meta { display: grid; grid-template-columns: 1fr 1fr; }
-
-      .hero-strip { flex-direction: column; }
-      .hero-strip-cell { border-right: none; border-bottom: 1px solid var(--border); }
-      .hero-strip-cell:last-child { border-bottom: none; }
-
-      .caps-layout { grid-template-columns: 1fr; }
-      .caps-tabs { flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--border); }
-      .caps-tab { border-bottom: none; border-right: 1px solid var(--border); flex: 1 1 auto; text-align: center; }
-      .caps-tab.is-active::before { top: auto; bottom: 0; left: 0; right: 0; width: auto; height: 2px; }
-
-      .caps-panel.is-active { flex-direction: column; }
-      .cap-number { font-size: 2.5rem; }
-
+    /* ── Tablet (≤860px): footer before it cramps ── */
+    @media (max-width: 860px) {
       .footer-grid { grid-template-columns: 1fr 1fr; }
       .footer-copy-col { align-items: flex-start; }
     }
 
+    /* ── Mobile (≤680px) ── */
+    @media (max-width: 680px) {
+      /* Nav */
+      .nav-menu   { display: none; }
+      .nav-toggle { display: flex; }
+
+      /* Hero title — prevent overflow on narrow screens */
+      .hero-title { font-size: clamp(2.8rem, 14vw, 9rem); }
+
+      /* Hero strip — stack vertically, clean borders */
+      .hero-strip { flex-direction: column; }
+      .hero-strip-cell {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        flex: none;          /* kill the 140px min-width constraint */
+        width: 100%;
+      }
+      .hero-strip-cell:last-child { border-bottom: none; }
+
+      /* Hero buttons — full-width on very small viewports */
+      .hero-actions { flex-direction: column; }
+      .hero-actions .btn { text-align: center; }
+
+      /* About */
+      .about-grid { grid-template-columns: 1fr; }
+      .about-meta { display: grid; grid-template-columns: 1fr 1fr; }
+
+      /* Projects — prevent overflow in row header */
+      .proj-name  { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .proj-lang  { display: none; }   /* hide lang on very small; still in body */
+      .proj-stars { display: none; }   /* same */
+
+      /* Capabilities — convert sidebar to horizontal tab bar */
+      .caps-layout { grid-template-columns: 1fr; }
+      .caps-tabs {
+        flex-direction: row;
+        flex-wrap: wrap;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;          /* allow scroll if still tight */
+        -webkit-overflow-scrolling: touch;
+      }
+      .caps-tab {
+        border-bottom: none;
+        border-right: 1px solid var(--border);
+        flex: 1 1 auto;
+        text-align: center;
+        font-size: .58rem;          /* slightly smaller to fit 4 tabs */
+        padding: .75rem .6rem;
+        white-space: nowrap;
+      }
+      /* Remove the $ suffix on mobile — it crowds the tabs */
+      .caps-tab::after { content: none; }
+      /* Active indicator: bottom bar instead of left bar */
+      .caps-tab.is-active::before {
+        top: auto; bottom: 0; left: 0; right: 0;
+        width: auto; height: 2px;
+      }
+
+      .caps-panel.is-active { flex-direction: column; }
+      .cap-number { font-size: 2.5rem; width: auto; }
+
+      /* Footer */
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .footer-copy-col { align-items: flex-start; }
+    }
+
+    /* ── Small mobile (≤400px) ── */
     @media (max-width: 400px) {
+      :root { --nav-h: 48px; }        /* slightly tighter nav */
+
+      .hero-title { font-size: clamp(2.4rem, 13vw, 4rem); }
+
       .about-meta { grid-template-columns: 1fr; }
+
+      /* Caps tabs scroll instead of wrapping weirdly on 320px */
+      .caps-tabs { flex-wrap: nowrap; }
+      .caps-tab  { flex: 0 0 auto; }
+
       .footer-grid { grid-template-columns: 1fr; }
     }
   </style>
