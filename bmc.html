@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Support Kaztral's work — buy a coffee to fuel more builds."/>
+  <meta name="theme-color" content="#140e09"/>
+  <title>Buy Me a Coffee — Gokul AR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --espresso:      #140d09;
+      --charcoal:      #191410;
+      --border:        rgba(216,175,109,.14);
+      --border-mid:    rgba(216,175,109,.28);
+      --border-strong: rgba(216,175,109,.45);
+
+      --orange:        #e2833f;
+      --orange-soft:   rgba(226,131,63,.16);
+      --orange-glow:   rgba(226,131,63,.38);
+
+      --gold:          #d9b06b;
+      --gold-soft:     #efd9a8;
+
+      --cream:         #f4ead9;
+      --fg:            #ece1d0;
+      --fg-dim:        #ab9a86;
+      --fg-mute:       #6d5f4f;
+
+      --grad-brand: linear-gradient(135deg, var(--orange) 0%, var(--gold) 100%);
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-head:    'Outfit', sans-serif;
+      --font-mono:    'JetBrains Mono', monospace;
+      --radius-md: 20px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--espresso);
+      color: var(--fg);
+      font-family: var(--font-head);
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+      padding: 2rem 1.25rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+    a { color: inherit; }
+    ::selection { background: var(--orange); color: #1a1108; }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: -1;
+      background:
+        radial-gradient(ellipse 55% 45% at 10% 0%, rgba(226,131,63,.18), transparent 60%),
+        radial-gradient(ellipse 55% 40% at 100% 10%, rgba(217,176,107,.12), transparent 60%),
+        radial-gradient(ellipse 65% 55% at 50% 115%, rgba(194,99,42,.16), transparent 60%),
+        var(--espresso);
+    }
+
+    a:focus-visible, button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 4px; }
+
+    .glass {
+      background: linear-gradient(160deg, rgba(255,244,225,.05), rgba(255,244,225,.015));
+      border: 1px solid var(--border);
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 620px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      opacity: 0; transform: translateY(24px);
+      animation: card-in .7s cubic-bezier(.16,.84,.44,1) .1s forwards;
+    }
+    @keyframes card-in { to { opacity: 1; transform: none; } }
+
+    .back-row { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      color: var(--fg-dim); font-size: .82rem; font-weight: 500;
+      transition: color .2s ease, gap .2s ease;
+    }
+    .back-btn:hover { color: var(--orange); gap: .6rem; }
+
+    .hero-row { padding: 2.4rem 1.75rem 1.6rem; border-bottom: 1px solid var(--border); text-align: center; }
+    .hero-eyebrow {
+      display: flex; align-items: center; justify-content: center; gap: .6rem;
+      font-family: var(--font-mono); font-size: .64rem; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--fg-dim); margin-bottom: .9rem;
+    }
+    .hero-eyebrow .dot-live {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--orange);
+      box-shadow: 0 0 8px var(--orange-glow);
+      animation: pulse-dot 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.35} }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.6rem, 9vw, 4rem);
+      letter-spacing: .02em; line-height: .95;
+      background: var(--grad-brand);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero-sub { font-size: .9rem; color: var(--fg-dim); margin-top: .9rem; max-width: 30rem; margin-left: auto; margin-right: auto; }
+
+    /* Coffee cup illustration */
+    .cup-wrap { display: flex; justify-content: center; margin: 1.4rem 0 .2rem; }
+    .coffee-illustration { animation: cup-float 5s ease-in-out infinite; filter: drop-shadow(0 10px 18px rgba(0,0,0,.4)); }
+    @keyframes cup-float { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-7px) } }
+
+    .steam {
+      fill: none;
+      stroke: var(--gold-soft);
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      opacity: 0;
+      transform-origin: center bottom;
+      animation: steam-rise 3.2s ease-in-out infinite;
+    }
+    .steam-2 { animation-delay: .5s; stroke: var(--cream); }
+    .steam-3 { animation-delay: 1s; }
+    @keyframes steam-rise {
+      0%   { opacity: 0;  transform: translateY(4px) scaleY(.85); }
+      25%  { opacity: .55; }
+      60%  { opacity: .3; }
+      100% { opacity: 0;  transform: translateY(-10px) scaleY(1.1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .coffee-illustration, .steam { animation: none; }
+    }
+
+    /* Amount selector */
+    .amount-section { padding: 1.8rem 1.75rem; }
+    .section-label { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .14em; text-transform: uppercase; color: var(--fg-mute); margin-bottom: 1rem; text-align: center; }
+
+    .amount-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; margin-bottom: 1.2rem; }
+    .amount-btn {
+      background: var(--charcoal);
+      border: 1px solid var(--border-mid);
+      border-radius: 12px;
+      padding: .8rem .4rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s ease, background .2s ease, transform .15s ease;
+    }
+    .amount-btn:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+    .amount-btn.active {
+      background: var(--orange-soft);
+      border-color: var(--orange);
+    }
+    .amount-btn .n { font-family: var(--font-head); font-weight: 700; font-size: 1.05rem; color: var(--cream); display: block; }
+    .amount-btn .label { font-family: var(--font-mono); font-size: .58rem; color: var(--fg-mute); text-transform: uppercase; letter-spacing: .06em; }
+
+    .custom-row {
+      display: flex; align-items: center; gap: .6rem;
+      background: var(--charcoal);
+      border: 1px solid var(--border-mid);
+      border-radius: 12px;
+      padding: .7rem 1rem;
+      margin-bottom: 1.4rem;
+    }
+    .custom-row span { font-family: var(--font-mono); font-size: .8rem; color: var(--fg-dim); }
+    .custom-row input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--cream); font-family: var(--font-head); font-size: .95rem; font-weight: 600;
+    }
+    .custom-row input::placeholder { color: var(--fg-mute); }
+
+    .support-btn {
+      width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: .55rem;
+      background: var(--grad-brand);
+      color: #1c1006;
+      font-family: var(--font-head); font-weight: 700; font-size: .95rem;
+      border: none; border-radius: 999px;
+      padding: .95rem 1.5rem;
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .2s ease;
+      text-decoration: none;
+    }
+    .support-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px var(--orange-glow); }
+    .support-btn svg { width: 18px; height: 18px; fill: #1c1006; }
+
+    .amount-note { text-align: center; font-size: .72rem; color: var(--fg-mute); margin-top: .9rem; }
+
+    /* Supporters wall */
+    .supporters-section { border-top: 1px solid var(--border); padding: 1.6rem 1.75rem 1.8rem; }
+    .supporters-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 1.1rem;
+    }
+    .supporters-head .section-label { margin-bottom: 0; text-align: left; }
+    .supporters-threshold {
+      font-family: var(--font-mono); font-size: .58rem; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--gold);
+    }
+
+    .supporters-list { display: flex; flex-direction: column; gap: .55rem; }
+    .supporter-row {
+      display: flex; align-items: center; gap: .8rem;
+      background: var(--charcoal);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .7rem .9rem;
+      opacity: 0; transform: translateY(8px);
+      animation: row-in .5s ease forwards;
+    }
+    @keyframes row-in { to { opacity: 1; transform: none; } }
+
+    .supporter-avatar {
+      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--grad-brand);
+      font-family: var(--font-head); font-weight: 700; font-size: .8rem; color: #1c1006;
+    }
+    .supporter-info { flex: 1; min-width: 0; }
+    .supporter-name { font-family: var(--font-head); font-weight: 600; font-size: .85rem; color: var(--cream); }
+    .supporter-msg { font-size: .72rem; color: var(--fg-dim); margin-top: .1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .supporter-amount {
+      font-family: var(--font-mono); font-size: .78rem; font-weight: 600;
+      color: var(--gold); flex-shrink: 0;
+    }
+
+    .supporters-empty { text-align: center; font-size: .78rem; color: var(--fg-mute); padding: 1rem 0; }
+    .supporters-footer-note { text-align: center; font-size: .68rem; color: var(--fg-mute); margin-top: 1rem; }
+    .supporters-footer-note a { color: var(--orange); text-decoration: underline; text-underline-offset: 3px; }
+
+    /* Footer */
+    .footer-row {
+      border-top: 1px solid var(--border);
+      padding: 1.1rem 1.75rem 1.4rem;
+      display: flex; justify-content: space-between; align-items: center;
+      font-family: var(--font-mono); font-size: .58rem; color: var(--fg-mute);
+      letter-spacing: .06em; text-transform: uppercase;
+    }
+    .footer-row .badge {
+      background: var(--grad-brand); color: #1c1006; font-weight: 700;
+      padding: .15rem .5rem; border-radius: 999px; font-size: .55rem;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 0; }
+      .card { border-radius: 0; }
+      .amount-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* Cursor steam-wisp trail */
+    .steam-wisp {
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 9999;
+      pointer-events: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(244,234,217,.55) 0%, rgba(217,176,107,.28) 45%, transparent 75%);
+      filter: blur(3px);
+      opacity: .6;
+      will-change: transform, opacity;
+      animation: wisp-curl 1.3s ease-out forwards;
+    }
+    /* Curl variants give the trail a soft, non-uniform smoke drift rather than
+       every particle rising in an identical straight line. */
+    .steam-wisp.curl-left  { animation-name: wisp-curl-left; }
+    .steam-wisp.curl-right { animation-name: wisp-curl-right; }
+
+    @keyframes wisp-curl {
+      0%   { opacity: .6; transform: translate(-50%, -50%) scale(.5) rotate(0deg); }
+      100% { opacity: 0;  transform: translate(-50%, -50%) translateY(-34px) scale(1.6) rotate(6deg); }
+    }
+    @keyframes wisp-curl-left {
+      0%   { opacity: .6; transform: translate(-50%, -50%) scale(.5) rotate(0deg); }
+      50%  { transform: translate(calc(-50% - 10px), -60%) scale(1.1) rotate(-10deg); }
+      100% { opacity: 0;  transform: translate(calc(-50% - 4px), -50%) translateY(-36px) scale(1.6) rotate(-16deg); }
+    }
+    @keyframes wisp-curl-right {
+      0%   { opacity: .6; transform: translate(-50%, -50%) scale(.5) rotate(0deg); }
+      50%  { transform: translate(calc(-50% + 10px), -60%) scale(1.1) rotate(10deg); }
+      100% { opacity: 0;  transform: translate(calc(-50% + 4px), -50%) translateY(-36px) scale(1.6) rotate(16deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="card glass">
+
+    <div class="back-row">
+      <a class="back-btn" href="index.html" aria-label="Back to home">← Back to home</a>
+    </div>
+
+    <div class="hero-row">
+      <p class="hero-eyebrow"><span class="dot-live"></span> Support the work</p>
+      <h1 class="hero-title">BUY ME A COFFEE</h1>
+      <p class="hero-sub">If something I built saved you time or sparked an idea, a coffee keeps the late-night builds going.</p>
+      <div class="cup-wrap" aria-hidden="true">
+        <svg class="coffee-illustration" viewBox="0 0 120 116" width="112" height="108">
+          <defs>
+            <linearGradient id="cupGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--cream)"/>
+              <stop offset="100%" stop-color="var(--gold-soft)"/>
+            </linearGradient>
+            <linearGradient id="saucerGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="var(--gold-soft)"/>
+              <stop offset="100%" stop-color="var(--cream)"/>
+            </linearGradient>
+            <radialGradient id="coffeeGrad" cx="45%" cy="35%" r="70%">
+              <stop offset="0%" stop-color="#6b4326"/>
+              <stop offset="100%" stop-color="#2e1c11"/>
+            </radialGradient>
+          </defs>
+
+          <!-- steam -->
+          <path class="steam steam-1" d="M46 30 C41 23 50 19 46 11"/>
+          <path class="steam steam-2" d="M60 30 C55 23 65 19 61 9"/>
+          <path class="steam steam-3" d="M74 30 C69 23 79 19 75 11"/>
+
+          <!-- saucer -->
+          <ellipse cx="60" cy="98" rx="44" ry="7" fill="url(#saucerGrad)" stroke="var(--border-strong)" stroke-width="1"/>
+          <ellipse cx="60" cy="97" rx="30" ry="3.4" fill="rgba(20,13,9,.12)"/>
+
+          <!-- handle -->
+          <path d="M89 52 C110 52 110 82 89 82" fill="none" stroke="url(#cupGrad)" stroke-width="8" stroke-linecap="round"/>
+
+          <!-- cup body -->
+          <path d="M26 38 L94 38 L87 87 C87 93 79 96 60 96 C41 96 33 93 33 87 Z"
+                fill="url(#cupGrad)" stroke="rgba(20,13,9,.45)" stroke-width="1.5"/>
+
+          <!-- coffee surface -->
+          <ellipse cx="60" cy="39" rx="34" ry="6.4" fill="url(#coffeeGrad)"/>
+          <ellipse cx="52" cy="37" rx="9" ry="2.4" fill="rgba(255,244,225,.18)"/>
+
+          <!-- rim highlight -->
+          <path d="M28 39 C28 35 92 35 92 39" fill="none" stroke="rgba(255,244,225,.4)" stroke-width="1.4" stroke-linecap="round"/>
+
+          <!-- body shading -->
+          <path d="M33 60 C34 74 36 84 41 90" fill="none" stroke="rgba(20,13,9,.18)" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="amount-section">
+      <div class="custom-row" id="customRow" style="display:none;">
+        <span>₹</span>
+        <input type="number" id="customInput" placeholder="Enter amount" min="1" inputmode="numeric"/>
+      </div>
+
+      <a class="support-btn" id="supportBtn" href="https://www.buymeacoffee.com/k4tral" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24"><path d="M4 3h14a1 1 0 0 1 1 1v3h1.5A2.5 2.5 0 0 1 23 9.5v2A2.5 2.5 0 0 1 20.5 14H19c-.4 3.5-3.4 6-7 6H8a6 6 0 0 1-6-6V4a1 1 0 0 1 1-1H4z"/></svg>
+        Support
+      </a>
+
+      <p class="amount-note">Redirects to your Buy Me a Coffee page (buymeacoffee.com/k4tral) to complete payment securely.</p>
+    </div>
+
+    <div class="supporters-section">
+      <div class="supporters-head">
+        <div class="section-label">SUPPORTERS</div>
+        <div class="supporters-threshold">₹100+ only</div>
+      </div>
+      <div class="supporters-list" id="supportersList">
+        <!-- Populated by renderSupporters() below -->
+      </div>
+      <p class="supporters-footer-note">
+        Full list on <a href="https://www.buymeacoffee.com/k4tral" target="_blank" rel="noopener noreferrer">buymeacoffee.com/k4tral</a>
+      </p>
+    </div>
+
+    <div class="footer-row">
+      <span>THANK YOU FOR<br/>THE SUPPORT</span>
+      <span class="badge">gokul</span>
+    </div>
+
+  </div>
+
+  <!-- Official Buy Me a Coffee floating widget button -->
+  <script
+    data-name="BMC-Widget"
+    data-cfasync="false"
+    src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
+    data-id="k4tral"
+    data-description="Support me on Buy me a coffee!"
+    data-message=""
+    data-color="#e2833f"
+    data-position="Right"
+    data-x_margin="18"
+    data-y_margin="18">
+  </script>
+
+  <script>
+    // ── Supporters wall (single-file, self-contained) ────────────────
+    // Renders directly from the SUPPORTERS array below — no external
+    // API call, no serverless function, no build step. This is
+    // deliberate: showing *real* live BMC data client-side would require
+    // sending your private BMC access token to the browser, where anyone
+    // can read it via "view source" / devtools. That's not a safe
+    // trade-off for a single static file.
+    //
+    // TO UPDATE SUPPORTERS: edit the SUPPORTERS array below — add a row
+    // per supporter, or copy them in from your Buy Me a Coffee dashboard
+    // (buymeacoffee.com/k4tral/supporters). The section auto-filters to
+    // MIN_SUPPORT_AMOUNT+ and sorts highest first — you don't need to
+    // pre-sort or pre-filter the list yourself.
+    const MIN_SUPPORT_AMOUNT = 100; // ₹ — matches the requested threshold
+
+    // Add real supporters here as they come in — one object per person.
+    // Example: { name: 'Real Name', amount: 150, message: 'Great work!' }
+    // Leave this empty until you have actual supporters to list; showing
+    // fabricated names/amounts would be misleading to site visitors.
+    const SUPPORTERS = [
+      // { name: 'Real Name', amount: 150, message: 'Optional message' },
+    ];
+
+    function initials(name) {
+      return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    }
+
+    // Escapes HTML special characters before interpolating into innerHTML.
+    // Even for a hand-edited array, this stays in place as a safety net —
+    // if this array is ever swapped for user-submitted or externally
+    // sourced data, unescaped interpolation becomes a stored XSS vector.
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function renderSupporters(list) {
+      const container = document.getElementById('supportersList');
+      const qualifying = list
+        .filter(s => Number.isFinite(s.amount) && s.amount >= MIN_SUPPORT_AMOUNT)
+        .sort((a, b) => b.amount - a.amount);
+
+      if (qualifying.length === 0) {
+        container.innerHTML = '<p class="supporters-empty">No supporters at ₹' + MIN_SUPPORT_AMOUNT + '+ yet — be the first!</p>';
+        return;
+      }
+
+      container.innerHTML = qualifying.map((s, i) => {
+        const safeName = escapeHtml(s.name || 'Anonymous');
+        const safeMsg = s.message ? escapeHtml(s.message) : '';
+        const safeAmount = Math.round(s.amount);
+        return `
+        <div class="supporter-row" style="animation-delay:${i * 60}ms">
+          <div class="supporter-avatar">${escapeHtml(initials(s.name || 'Anonymous'))}</div>
+          <div class="supporter-info">
+            <div class="supporter-name">${safeName}</div>
+            ${safeMsg ? `<div class="supporter-msg">${safeMsg}</div>` : ''}
+          </div>
+          <div class="supporter-amount">₹${safeAmount}</div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    renderSupporters(SUPPORTERS);
+
+    // Buy Me a Coffee page
+    const BMC_BASE_URL = "https://www.buymeacoffee.com/k4tral";
+
+    // Preset amount mapping
+    const presetAmounts = {
+      "3": 100,
+      "9": 300,
+      "15": 500
+    };
+
+    // Stores the currently selected amount
+    let selectedAmount = presetAmounts["9"];
+
+    // Elements
+    const grid = document.getElementById("amountGrid");
+    const customRow = document.getElementById("customRow");
+    const customInput = document.getElementById("customInput");
+    const supportBtn = document.getElementById("supportBtn");
+
+    // Set active amount button
+    function setActive(btn) {
+      grid.querySelectorAll(".amount-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    }
+
+    // Update button text and selected amount
+    function updateButton(amount) {
+      selectedAmount = amount || null;
+
+      supportBtn.innerHTML = `
+        <svg viewBox="0 0 24 24">
+          <path d="M4 3h14a1 1 0 0 1 1 1v3h1.5A2.5 2.5 0 0 1 23 9.5v2A2.5 2.5 0 0 1 20.5 14H19c-.4 3.5-3.4 6-7 6H8a6 6 0 0 1-6-6V4a1 1 0 0 1 1-1H4z"/>
+        </svg>
+        ${amount ? `Support with ₹${amount}` : "Support"}
+      `;
+    }
+
+    // Preset selection
+    grid.addEventListener("click", (e) => {
+      const btn = e.target.closest(".amount-btn");
+      if (!btn) return;
+
+      setActive(btn);
+
+      if (btn.dataset.amount === "custom") {
+        customRow.style.display = "flex";
+        customInput.focus();
+
+        const value = Number(customInput.value);
+
+        updateButton(value > 0 ? value : null);
+
+      } else {
+
+        customRow.style.display = "none";
+
+        updateButton(presetAmounts[btn.dataset.amount]);
+
+      }
+    });
+
+    // Custom amount
+    customInput.addEventListener("input", () => {
+
+      const value = Number(customInput.value);
+
+      updateButton(value > 0 ? value : null);
+
+    });
+
+    // Support button click
+    supportBtn.addEventListener("click", function (e) {
+
+      e.preventDefault();
+
+      const amountText = selectedAmount
+          ? `₹${selectedAmount}`
+          : "your preferred amount";
+
+      const proceed = confirm(
+    `Selected Amount: ${amountText}
+
+    Buy Me a Coffee does not currently support automatically transferring donation amounts from external websites.
+
+    After you are redirected, please choose the same amount on the Buy Me a Coffee payment page.
+
+    Press OK to continue.`
+      );
+
+      if (proceed) {
+          window.open(BMC_BASE_URL, "_blank", "noopener,noreferrer");
+      }
+
+    });
+
+    // Default selection
+    updateButton(presetAmounts["9"]);
+
+    // Cursor steam-wisp trail — soft smoke curls drifting up and dissipating,
+    // matching the coffee theme. Disabled for touch devices and reduced-motion
+    // preference to avoid unnecessary work / respect accessibility settings.
+    const supportsFinePointer = window.matchMedia('(pointer: fine)').matches;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (supportsFinePointer && !prefersReducedMotion) {
+      const WISP_INTERVAL_MS = 55; // throttle spawn rate for performance
+      let lastSpawn = 0;
+
+      window.addEventListener('pointermove', (e) => {
+        const now = performance.now();
+        if (now - lastSpawn < WISP_INTERVAL_MS) return;
+        lastSpawn = now;
+
+        const wisp = document.createElement('div');
+        // Randomly assign a curl direction (or straight rise) so consecutive
+        // wisps don't all drift identically — reads as soft, organic smoke.
+        const curlRoll = Math.random();
+        const curlClass = curlRoll < 0.4 ? 'curl-left' : curlRoll < 0.8 ? 'curl-right' : '';
+        wisp.className = curlClass ? `steam-wisp ${curlClass}` : 'steam-wisp';
+
+        const jitterX = (Math.random() - 0.5) * 8;
+        const jitterY = (Math.random() - 0.5) * 8;
+        const scale = 0.8 + Math.random() * 0.5;
+        wisp.style.left = `${e.clientX + jitterX}px`;
+        wisp.style.top = `${e.clientY + jitterY}px`;
+        wisp.style.transform = `translate(-50%, -50%) scale(${scale})`;
+
+        document.body.appendChild(wisp);
+        // Clean up after the animation completes to avoid unbounded DOM growth.
+        wisp.addEventListener('animationend', () => wisp.remove(), { once: true });
+      }, { passive: true });
+    }
+  </script>
+</body>
+</html>
